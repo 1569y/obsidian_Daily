@@ -28,12 +28,17 @@ import {
   extractProviderErrorMessage,
   formatInvalidPayloadErrorKind,
   getSafeEndpointPath,
+  getInvalidPayloadKind,
+  getParserFamily,
   getResponsePayloadCandidates,
+  hasNullChoicesPayload,
   isAbortError,
+  isReasoningOnlyStreamPayload,
   isQuotaOrRateLimitError,
   looksLikeProviderErrorText,
   normalizeChatCompletionsEndpoint,
   safeSerializeForLog,
+  shouldTryStreamFallback,
   truncateForLog,
   warnIfEndpointLooksIncomplete,
 } from "./llmClient";
@@ -686,7 +691,7 @@ ${userMessage}
   }
 
   private getMessageContent(data: unknown): string {
-    return parseResponseByFamily(data, this.getParserFamily()).text;
+    return parseResponseByFamily(data, getParserFamily(this.providerProfile)).text;
   }
 
   private async requestChatCompletionJson(
@@ -801,7 +806,7 @@ ${userMessage}
         };
       }
 
-      const invalidPayloadKind = this.getInvalidPayloadKind(firstData);
+      const invalidPayloadKind = getInvalidPayloadKind(firstData, this.providerProfile);
       this.pushAttemptError(
         attemptState,
         invalidPayloadKind
@@ -935,7 +940,7 @@ ${userMessage}
         stream: false,
         retryReason,
       });
-      if (this.shouldTryStreamFallback("provider_error")) {
+      if (shouldTryStreamFallback(this.providerProfile, "provider_error")) {
         return this.retryChatCompletionWithStream(
           messages,
           temperature,
@@ -954,8 +959,8 @@ ${userMessage}
     }
 
     const retryContent = this.getMessageContent(retryData);
-    const invalidPayloadKind = this.getInvalidPayloadKind(retryData);
-    if (retryContent.trim().length === 0 && this.shouldTryStreamFallback(invalidPayloadKind ? "invalid_payload" : "empty_content")) {
+    const invalidPayloadKind = getInvalidPayloadKind(retryData, this.providerProfile);
+    if (retryContent.trim().length === 0 && shouldTryStreamFallback(this.providerProfile, invalidPayloadKind ? "invalid_payload" : "empty_content")) {
       this.pushAttemptError(
         attemptState,
         invalidPayloadKind
@@ -1101,7 +1106,7 @@ ${userMessage}
     }
 
     const streamContent = this.getMessageContent(streamData);
-    attemptState.reasoningOnly = this.isReasoningOnlyStreamPayload(streamData);
+    attemptState.reasoningOnly = isReasoningOnlyStreamPayload(streamData);
     if (streamContent.trim().length === 0) {
       this.pushAttemptError(attemptState, "empty_content");
     }
@@ -1351,7 +1356,7 @@ ${userMessage}
           usedJsonMode: meta?.usedJsonMode ?? true,
           usedThinkingDisabled: meta?.usedThinkingDisabled ?? false,
           retryReason: meta?.retryReason,
-          errorKind: this.getInvalidPayloadKind(data) ? "invalid_payload" : "empty_content",
+          errorKind: getInvalidPayloadKind(data, this.providerProfile) ? "invalid_payload" : "empty_content",
           extra: {
             willRetryWithoutJsonMode: meta?.willRetryWithoutJsonMode ?? false,
             ...preview,
@@ -1682,12 +1687,6 @@ ${userMessage}
     };
   }
 
-  private hasNullChoicesPayload(data: unknown): boolean {
-    return getResponsePayloadCandidates(data).some(
-      (payload) => payload.choices === null
-    );
-  }
-
   private logNullChoicesPayloadIfNeeded(
     data: unknown,
     context: ChatCompletionRequestKind,
@@ -1699,7 +1698,7 @@ ${userMessage}
       retryReason?: ChatCompletionRetryReason;
     }
   ): void {
-    if (!this.hasNullChoicesPayload(data)) {
+    if (!hasNullChoicesPayload(data)) {
       return;
     }
 
@@ -1751,24 +1750,6 @@ ${userMessage}
     return this.providerProfile.supportsThinkingControl;
   }
 
-  private getParserFamily(): LLMResponseParserFamily {
-    return this.providerProfile.responseParser;
-  }
-
-  private getInvalidPayloadKind(data: unknown): InvalidPayloadKind | null {
-    return classifyInvalidPayload(data, this.getParserFamily());
-  }
-
-  private shouldTryStreamFallback(
-    errorKind: "empty_content" | "invalid_payload" | "provider_error"
-  ): boolean {
-    if (!this.providerProfile.supportsStreaming) {
-      return false;
-    }
-
-    return errorKind === "empty_content" || errorKind === "invalid_payload" || errorKind === "provider_error";
-  }
-
   private buildAttemptLogMeta(
     context: ChatCompletionRequestKind,
     attemptMode: "non_stream_json" | "non_stream_plain" | "stream_plain",
@@ -1784,7 +1765,7 @@ ${userMessage}
     return {
       requestKind: context,
       providerProfileId: this.providerProfile.id,
-      parserFamily: this.getParserFamily(),
+      parserFamily: getParserFamily(this.providerProfile),
       attemptMode,
       endpointPath: getSafeEndpointPath(this.normalizedBaseUrl),
       model: this.options.model,
@@ -1842,7 +1823,7 @@ ${userMessage}
     reasoningOnly: boolean;
   }): void {
     const trail = summary.errorTrail.length > 0 ? summary.errorTrail.join(">") : "none";
-    const message = `[MoodNest LLM attempt summary] provider=${this.providerProfile.id} parser=${this.getParserFamily()} final=${summary.finalAttemptMode} status=${summary.status} retries=${summary.retryCount} errorTrail=${trail} textLength=${summary.textLength} reasoningOnly=${summary.reasoningOnly}`;
+    const message = `[MoodNest LLM attempt summary] provider=${this.providerProfile.id} parser=${getParserFamily(this.providerProfile)} final=${summary.finalAttemptMode} status=${summary.status} retries=${summary.retryCount} errorTrail=${trail} textLength=${summary.textLength} reasoningOnly=${summary.reasoningOnly}`;
     if (summary.status === "fallback") {
       console.warn(message);
       return;
@@ -1874,22 +1855,6 @@ ${userMessage}
       textLength: 0,
       reasoningOnly,
     });
-  }
-
-  private isReasoningOnlyStreamPayload(data: unknown): boolean {
-    const payloads = getResponsePayloadCandidates(data);
-    for (const payload of payloads) {
-      if (!payload || typeof payload !== "object") {
-        continue;
-      }
-
-      const reasoningOnly = payload.reasoningOnly;
-      if (typeof reasoningOnly === "boolean") {
-        return reasoningOnly;
-      }
-    }
-
-    return false;
   }
 
   private safeText(value: unknown, fallback: string): string {

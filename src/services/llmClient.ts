@@ -1,7 +1,12 @@
 import {
+  classifyInvalidPayload,
   normalizeProviderError,
   type InvalidPayloadKind,
 } from "./llmResponseParsers";
+import type {
+  LLMProviderProfile,
+  LLMResponseParserFamily,
+} from "./llmProviderProfiles";
 
 const DEFAULT_LOG_PREVIEW_LIMIT = 1500;
 
@@ -515,4 +520,54 @@ export function buildResponsePreview(data: unknown): {
     choiceTextPreview: truncateForLog(safeSerializeForLog(choiceText)),
     responsePreview: truncateForLog(safeSerializeForLog(data)),
   };
+}
+
+export function getParserFamily(
+  providerProfile: Pick<LLMProviderProfile, "responseParser">
+): LLMResponseParserFamily {
+  return providerProfile.responseParser;
+}
+
+export function getInvalidPayloadKind(
+  data: unknown,
+  providerProfile: Pick<LLMProviderProfile, "responseParser">
+): InvalidPayloadKind | null {
+  return classifyInvalidPayload(data, getParserFamily(providerProfile));
+}
+
+export function shouldTryStreamFallback(
+  providerProfile: Pick<LLMProviderProfile, "supportsStreaming">,
+  errorKind: "empty_content" | "invalid_payload" | "provider_error"
+): boolean {
+  if (!providerProfile.supportsStreaming) {
+    return false;
+  }
+
+  return (
+    errorKind === "empty_content" ||
+    errorKind === "invalid_payload" ||
+    errorKind === "provider_error"
+  );
+}
+
+export function hasNullChoicesPayload(data: unknown): boolean {
+  return getResponsePayloadCandidates(data).some(
+    (payload) => payload.choices === null
+  );
+}
+
+export function isReasoningOnlyStreamPayload(data: unknown): boolean {
+  const payloads = getResponsePayloadCandidates(data);
+  for (const payload of payloads) {
+    if (!payload || typeof payload !== "object") {
+      continue;
+    }
+
+    const reasoningOnly = payload.reasoningOnly;
+    if (typeof reasoningOnly === "boolean") {
+      return reasoningOnly;
+    }
+  }
+
+  return false;
 }
