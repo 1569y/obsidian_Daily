@@ -1,251 +1,394 @@
-# Obsidian community plugin
+# MoodNest 项目协作说明
 
-## Project overview
+## 一、项目定位
 
-- Target: Obsidian Community Plugin (TypeScript → bundled JavaScript).
-- Entry point: `main.ts` compiled to `main.js` and loaded by Obsidian.
-- Required release artifacts: `main.js`, `manifest.json`, and optional `styles.css`.
+MoodNest 是一个 Obsidian 插件，当前核心是：
 
-## Environment & tooling
+- 情绪记录
+- 实时陪伴式对话
+- 基础情绪整理
+- 可选语音转写
+- 可选 API 驱动回复
 
-- Node.js: use current LTS (Node 18+ recommended).
-- **Package manager: npm** (required for this sample - `package.json` defines npm scripts and dependencies).
-- **Bundler: esbuild** (required for this sample - `esbuild.config.mjs` and build scripts depend on it). Alternative bundlers like Rollup or webpack are acceptable for other projects if they bundle all external dependencies into `main.js`.
-- Types: `obsidian` type definitions.
+MoodNest 不是：
 
-**Note**: This sample project has specific technical dependencies on npm and esbuild. If you're creating a plugin from scratch, you can choose different tools, but you'll need to replace the build configuration accordingly.
+- 临床心理诊断工具
+- 冷冰冰的分析器
+- 一上来就给方案的职业顾问
+- 只会说“我理解你”的安慰机器人
 
-### Install
+MoodNest 是：
 
-```bash
-npm install
-```
+**一个先接住用户情绪，再轻轻收窄问题，最后陪用户落到现实中一个小步的陪伴式引导者。**
 
-### Dev (watch)
+---
 
-```bash
-npm run dev
-```
+## 二、当前产品中心
 
-### Production build
+当前阶段，MoodNest 的第一优先级不是任务规划、图表或游戏化，而是：
 
-```bash
-npm run build
-```
+**把情感陪伴主线做真、做顺、做得让用户愿意继续用。**
 
-## Linting
+当前核心目标：
 
-- To use eslint install eslint from terminal: `npm install -g eslint`
-- To use eslint to analyze this project use this command: `eslint main.ts`
-- eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder: `eslint ./src/`
+1. 用户愿意打开它
+2. 用户愿意开始说
+3. 用户不会觉得它假惺惺、像分析器、像问卷
+4. 用户在一次对话后，能感觉到“我被陪着理清了一点东西”
 
-## File & folder conventions
+---
 
-- **Organize code into multiple files**: Split functionality across separate modules rather than putting everything in `main.ts`.
-- Source lives in `src/`. Keep `main.ts` small and focused on plugin lifecycle (loading, unloading, registering commands).
-- **Example file structure**:
-  ```
-  src/
-    main.ts           # Plugin entry point, lifecycle management
-    settings.ts       # Settings interface and defaults
-    commands/         # Command implementations
-      command1.ts
-      command2.ts
-    ui/              # UI components, modals, views
-      modal.ts
-      view.ts
-    utils/           # Utility functions, helpers
-      helpers.ts
-      constants.ts
-    types.ts         # TypeScript interfaces and types
-  ```
-- **Do not commit build artifacts**: Never commit `node_modules/`, `main.js`, or other generated files to version control.
-- Keep the plugin small. Avoid large dependencies. Prefer browser-compatible packages.
-- Generated output should be placed at the plugin root or `dist/` depending on your build setup. Release artifacts must end up at the top level of the plugin folder in the vault (`main.js`, `manifest.json`, `styles.css`).
+## 三、长期产品方向
 
-## Manifest rules (`manifest.json`)
+MoodNest 当前以情感陪伴为核心，但未来会逐步扩展为一个陪伴式生活助手，主要包括：
 
-- Must include (non-exhaustive):  
-  - `id` (plugin ID; for local dev it should match the folder name)  
-  - `name`  
-  - `version` (Semantic Versioning `x.y.z`)  
-  - `minAppVersion`  
-  - `description`  
-  - `isDesktopOnly` (boolean)  
-  - Optional: `author`, `authorUrl`, `fundingUrl` (string or map)
-- Never change `id` after release. Treat it as stable API.
-- Keep `minAppVersion` accurate when using newer APIs.
-- Canonical requirements are coded here: https://github.com/obsidianmd/obsidian-releases/blob/master/.github/workflows/validate-plugin-entry.yml
+1. 情感陪伴与情绪梳理
+2. 任务拆解与日记 / Tasks 写入
+3. 右侧动态支持面板
+4. 情绪急救与微介入支持
+5. 可视化与趋势反馈
+6. 可选游戏化成长模式
 
-## Testing
+未来扩展不能破坏当前核心身份。
 
-- Manual install for testing: copy `main.js`, `manifest.json`, `styles.css` (if any) to:
-  ```
-  <Vault>/.obsidian/plugins/<plugin-id>/
-  ```
-- Reload Obsidian and enable the plugin in **Settings → Community plugins**.
+**MoodNest 首先仍然是一个先接住、再收窄、再落地的陪伴式引导者。**
 
-## Commands & settings
+---
 
-- Any user-facing commands should be added via `this.addCommand(...)`.
-- If the plugin has configuration, provide a settings tab and sensible defaults.
-- Persist settings using `this.loadData()` / `this.saveData()`.
-- Use stable command IDs; avoid renaming once released.
+## 四、核心产品原则
 
-## Versioning & releases
+### 1. 左侧聊天与右侧面板分工明确
+- 左侧聊天：必须自然、简短、像人在说话
+- 右侧面板：可以结构化、总结化、分析化、可视化
 
-- Bump `version` in `manifest.json` (SemVer) and update `versions.json` to map plugin version → minimum app version.
-- Create a GitHub release whose tag exactly matches `manifest.json`'s `version`. Do not use a leading `v`.
-- Attach `manifest.json`, `main.js`, and `styles.css` (if present) to the release as individual assets.
-- After the initial release, follow the process to add/update your plugin in the community catalog as required.
+### 2. 实时回复遵循三步主线
+MoodNest 的实时回复应尽量符合：
 
-## Security, privacy, and compliance
+1. contain（接住）
+2. clarify（收窄）
+3. ground（落地）
 
-Follow Obsidian's **Developer Policies** and **Plugin Guidelines**. In particular:
+### 3. 一轮只做一个主要动作
+一轮回复中，不要同时：
+- 接住
+- 深度分析
+- 连续追问
+- 给多个建议
 
-- Default to local/offline operation. Only make network requests when essential to the feature.
-- No hidden telemetry. If you collect optional analytics or call third-party services, require explicit opt-in and document clearly in `README.md` and in settings.
-- Never execute remote code, fetch and eval scripts, or auto-update plugin code outside of normal releases.
-- Minimize scope: read/write only what's necessary inside the vault. Do not access files outside the vault.
-- Clearly disclose any external services used, data sent, and risks.
-- Respect user privacy. Do not collect vault contents, filenames, or personal information unless absolutely necessary and explicitly consented.
-- Avoid deceptive patterns, ads, or spammy notifications.
-- Register and clean up all DOM, app, and interval listeners using the provided `register*` helpers so the plugin unloads safely.
+### 4. 规则词表是辅助，不是主导
+规则词表的作用是：
+- 识别场景
+- 帮助判断当前更适合 contain / clarify / ground
+- 帮助回复更贴近上下文
 
-## UX & copy guidelines (for UI text, commands, settings)
+规则词表不应该直接主导整段回复文案。
 
-- Prefer sentence case for headings, buttons, and titles.
-- Use clear, action-oriented imperatives in step-by-step copy.
-- Use **bold** to indicate literal UI labels. Prefer "select" for interactions.
-- Use arrow notation for navigation: **Settings → Community plugins**.
-- Keep in-app strings short, consistent, and free of jargon.
+### 5. 人情味优先
+避免：
+- “你现在是不是……对吗？”
+- “事情本身是一层，它带来的内在拉扯是另一层”
+- “我听到了你现在的情绪波动”
+- 过强的分析器口吻
+- 模板感太重的追问
 
-## Performance
+鼓励：
+- 温和、具体、可感的语言
+- 小而真实的问题
+- 轻轻引导，而不是盘问
+- 让用户觉得“我在被陪着说出来”
 
-- Keep startup light. Defer heavy work until needed.
-- Avoid long-running tasks during `onload`; use lazy initialization.
-- Batch disk access and avoid excessive vault scans.
-- Debounce/throttle expensive operations in response to file system events.
+### 6. 低负担优先
+无论是建议、急救动作、微任务还是未来的游戏化，都应遵循：
+- 小
+- 轻
+- 低负担
+- 能开始
+- 不制造额外羞耻感
 
-## Coding conventions
+---
 
-- TypeScript with `"strict": true` preferred.
-- **Keep `main.ts` minimal**: Focus only on plugin lifecycle (onload, onunload, addCommand calls). Delegate all feature logic to separate modules.
-- **Split large files**: If any file exceeds ~200-300 lines, consider breaking it into smaller, focused modules.
-- **Use clear module boundaries**: Each file should have a single, well-defined responsibility.
-- Bundle everything into `main.js` (no unbundled runtime deps).
-- Avoid Node/Electron APIs if you want mobile compatibility; set `isDesktopOnly` accordingly.
-- Prefer `async/await` over promise chains; handle errors gracefully.
+## 五、当前优先级
 
-## Mobile
+按当前开发阶段，优先级如下：
 
-- Where feasible, test on iOS and Android.
-- Don't assume desktop-only behavior unless `isDesktopOnly` is `true`.
-- Avoid large in-memory structures; be mindful of memory and storage constraints.
+1. 优化实时陪伴对话质量
+2. 保证规则版与 API 版回复节奏尽量一致
+3. 避免 live chat 重复、追问过多、像分析器
+4. 保持语音转写可用，但语音不是当前最高优先级
+5. 支持多个 API provider profile，方便切换免费额度
+6. 后续再推进任务拆解、右侧动态支持面板增强、可视化、游戏化
 
-## Agent do/don't
+---
 
-**Do**
-- Add commands with stable IDs (don't rename once released).
-- Provide defaults and validation in settings.
-- Write idempotent code paths so reload/unload doesn't leak listeners or intervals.
-- Use `this.register*` helpers for everything that needs cleanup.
+## 六、关键文件
 
-**Don't**
-- Introduce network calls without an obvious user-facing reason and documentation.
-- Ship features that require cloud services without clear disclosure and explicit opt-in.
-- Store or transmit vault contents unless essential and consented.
+开始修改前，优先阅读以下文件：
 
-## Common tasks
+- `src/services/ruleBasedAgentProvider.ts`
+  - 规则版支持逻辑
+  - 场景识别
+  - contain / clarify / ground 路由
 
-### Organize code across multiple files
+- `src/services/agentService.ts`
+  - 实时回复调度入口
+  - 规则版 / API 版分流
+  - live chat 上下文处理
 
-**main.ts** (minimal, lifecycle only):
-```ts
-import { Plugin } from "obsidian";
-import { MySettings, DEFAULT_SETTINGS } from "./settings";
-import { registerCommands } from "./commands";
+- `src/services/apiAgentProvider.ts`
+  - API 版实时回复
+  - API fallback 到规则版逻辑
 
-export default class MyPlugin extends Plugin {
-  settings: MySettings;
+- `src/ui/modals/EmotionLogModal.ts`
+  - 聊天 UI
+  - 消息发送与历史流转
+  - 结束后写入记录
 
-  async onload() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-    registerCommands(this);
-  }
-}
-```
+- `src/settings.ts`
+  - 插件设置页
+  - agent / stt / provider 配置
 
-**settings.ts**:
-```ts
-export interface MySettings {
-  enabled: boolean;
-  apiKey: string;
-}
+- `src/types.ts`
+  - 全局类型定义
 
-export const DEFAULT_SETTINGS: MySettings = {
-  enabled: true,
-  apiKey: "",
-};
-```
+- `main.ts`
+  - 插件加载与 service 初始化
 
-**commands/index.ts**:
-```ts
-import { Plugin } from "obsidian";
-import { doSomething } from "./my-command";
+---
 
-export function registerCommands(plugin: Plugin) {
-  plugin.addCommand({
-    id: "do-something",
-    name: "Do something",
-    callback: () => doSomething(plugin),
-  });
-}
-```
+## 七、工作流程要求
 
-### Add a command
+对于任何非小修小补任务，都应遵循以下流程：
 
-```ts
-this.addCommand({
-  id: "your-command-id",
-  name: "Do the thing",
-  callback: () => this.doTheThing(),
-});
-```
+### 第一步：先读代码
+先阅读相关文件，确认当前逻辑，不要凭空猜。
 
-### Persist settings
+### 第二步：先总结现状
+先说明：
+- 当前逻辑怎么工作
+- 当前问题在哪里
+- 哪些问题属于 routing
+- 哪些问题属于文案
+- 哪些问题属于 provider / settings / UI
 
-```ts
-interface MySettings { enabled: boolean }
-const DEFAULT_SETTINGS: MySettings = { enabled: true };
+### 第三步：先给小计划
+修改前先给一个简短计划，最多 3 到 5 步。
 
-async onload() {
-  this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-  await this.saveData(this.settings);
-}
-```
+### 第四步：再做最小改动
+优先局部替换，不要一上来大重构。
 
-### Register listeners safely
+### 第五步：最后说明验证方式
+改完后必须说明：
+- 改了哪些文件
+- 为什么这样改
+- 如何在 Obsidian 中手动测试
+- 还有什么已知限制
 
-```ts
-this.registerEvent(this.app.workspace.on("file-open", f => { /* ... */ }));
-this.registerDomEvent(window, "resize", () => { /* ... */ });
-this.registerInterval(window.setInterval(() => { /* ... */ }, 1000));
-```
+---
 
-## Troubleshooting
+## 八、代码约束
 
-- Plugin doesn't load after build: ensure `main.js` and `manifest.json` are at the top level of the plugin folder under `<Vault>/.obsidian/plugins/<plugin-id>/`. 
-- Build issues: if `main.js` is missing, run `npm run build` or `npm run dev` to compile your TypeScript source code.
-- Commands not appearing: verify `addCommand` runs after `onload` and IDs are unique.
-- Settings not persisting: ensure `loadData`/`saveData` are awaited and you re-render the UI after changes.
-- Mobile-only issues: confirm you're not using desktop-only APIs; check `isDesktopOnly` and adjust.
+### 1. 尽量少改
+除非明确要求重构，否则优先：
+- 小范围改动
+- 局部替换
+- 保留现有架构
 
-## References
+### 2. 不要顺手改无关模块
+如果任务是改 agent，不要顺手改语音；
+如果任务是改 provider，不要顺手大改 UI；
+如果任务是改右侧面板，不要顺手重写存档逻辑。
 
-- Obsidian sample plugin: https://github.com/obsidianmd/obsidian-sample-plugin
-- API documentation: https://docs.obsidian.md
-- Developer policies: https://docs.obsidian.md/Developer+policies
-- Plugin guidelines: https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines
-- Style guide: https://help.obsidian.md/style-guide
+### 3. 不要静默删除已有功能
+除非明确说明要删，否则不要偷偷删功能。
+
+### 4. 保持 TypeScript 类型正确
+避免：
+- 明显类型错误
+- 无控制的 any 扩散
+- 打破现有类型结构
+
+### 5. 新增依赖要克制
+除非必要，不要随意增加依赖。
+如果必须新增依赖，需要说明原因。
+
+---
+
+## 九、实时对话设计规范
+
+### 1. contain（接住）
+适用：
+- 用户刚开口
+- 情绪很满
+- 内容还乱
+- 用户主要在倾诉
+
+要求：
+- 1~2 句
+- 不追问
+- 不给方案
+- 可轻微去羞耻
+
+目标：
+让用户感觉“你听懂我了”。
+
+---
+
+### 2. clarify（收窄）
+适用：
+- 用户已经开始把事情说出来
+- 需要帮助收窄问题
+- 用户愿意继续说
+
+要求：
+- 2~3 句
+- 最多只问一个小问题
+- 问题必须小、具体、容易回答
+- 不要像盘问
+- 不要连续“你是不是……对吗？”
+
+目标：
+帮助用户把最卡的点说清楚。
+
+---
+
+### 3. ground（落地）
+适用：
+- 用户已经说出比较具体的卡点
+- 可以往现实里走一点
+- 情绪没有一开始那么满
+
+要求：
+- 2~3 句
+- 不给大而全方案
+- 只落一个现实中的小步
+- 动作必须低负担、可执行
+
+目标：
+让用户感觉“我现在至少能做一点点”。
+
+---
+
+## 十、右侧面板定位
+
+右侧区域不只是分析面板。
+
+它未来应逐步演化为一个：
+
+**动态支持面板（Dynamic Support Panel）**
+
+可根据当前对话状态显示：
+
+- 当前核心痛点
+- 当前最需要
+- 当前建议的一小步
+- 情绪急救入口
+- 微任务建议
+- 任务拆解入口
+- 计时器入口
+- 图表 / 趋势反馈
+- 成长 / 游戏化反馈
+
+当前阶段，先保证右侧基础支持信息清楚、可读、和左侧节奏一致。
+
+---
+
+## 十一、关于规则版与 API 版
+
+### 1. 规则版
+规则版优先保证：
+- 稳定
+- 节奏对
+- 不出戏
+- 符合 MoodNest 身份
+
+### 2. API 版
+API 版可以更自然、更灵活，但不能偏离产品身份。
+
+### 3. 两者一致性
+如果规则版和 API 版表现差异很大，优先检查：
+- 路由是否一致
+- fallback 是否一致
+- live chat 是否被历史污染动作判断
+- 是否自动拼接了 followUpPrompt
+- 右侧 quickAnalysis 是否和左侧节奏脱节
+
+---
+
+## 十二、关于多 Provider Profile
+
+项目后续将支持多个 API provider profile。
+
+设计原则：
+- 支持保存多套 provider 配置
+- 每套独立保存：
+  - 名称
+  - provider 类型
+  - baseUrl
+  - apiKey
+  - model
+  - enabled
+- 支持用户手动切换当前激活 provider
+- v1 先不做自动 fallback
+- v2 再考虑失败切换和自动轮换
+
+修改 provider 相关逻辑时：
+- 优先保持 `ApiAgentProvider` 构造接口简洁
+- 让 `AgentService` 负责读取 active profile
+- 不要把 provider 逻辑散落在多个 UI 文件中
+
+---
+
+## 十三、安全与配置原则
+
+- 不要把 API key、token、账号密码写进仓库或 `AGENTS.md`
+- 所有 provider 凭据通过环境变量或本地配置注入
+- 不要把临时登录状态、免费额度状态、调试日志写进 `AGENTS.md`
+- 认证、provider 配置、环境变量说明，应写在单独文档中
+
+---
+
+## 十四、完成标准（Done means）
+
+一个任务只有同时满足以下条件，才算真正完成：
+
+1. 改动符合任务目标
+2. 没有明显破坏主流程
+3. 没有新增明显 TypeScript 问题
+4. 说明了如何在 Obsidian 中手动测试
+5. 回复风格没有偏离 MoodNest 的身份
+6. 没有顺手扩大修改范围
+
+---
+
+## 十五、补充文档
+
+语言风格校准请参考：
+
+- `docs/dialogue-tone-guide.md`
+
+产品整体方案请参考：
+
+- `docs/moodnest-product-design-v1.md`
+- `docs/moodnest-information-architecture-v1.md`
+- `docs/moodnest-mvp-v1.md`（如果已存在）
+
+---
+
+## 十六、对 Codex 的特别提醒
+
+如果任务比较复杂，请先：
+- 阅读相关文件
+- 总结当前问题
+- 列出短计划
+- 等确认后再改代码
+
+不要：
+- 一上来大重构
+- 一次改太多主题
+- 把右侧分析语言直接搬到左侧聊天
+- 用很多抽象术语替代自然说话
+- 因为一个局部问题就顺手重写整个模块
+
+始终记住：
+
+**MoodNest 的价值，不是解释用户，而是陪用户慢慢把真正卡住的点说出来。**
