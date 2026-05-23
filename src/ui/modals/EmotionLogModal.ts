@@ -157,7 +157,9 @@ export class EmotionLogModal extends Modal {
     this.renderLayout();
     this.renderChatHistory();
     this.renderActionPanel();
-    void this.plugin.asrService.init();
+    void this.plugin.asrService.init().catch((error) => {
+      console.warn("[MoodNest ASR] init failed during modal open:", error);
+    });
   }
 
   onClose(): void {

@@ -16,6 +16,10 @@
   - `CONTRIBUTING_AI.md`
   - `KNOWN_ISSUES.md`
 
+### Fixed
+
+- 减少 `EmotionLogModal` 打开时的 ASR 初始化稳定性风险：为 `this.plugin.asrService.init()` 增加最小错误兜底，避免 whisper.cpp 资源缺失或初始化失败时出现未处理 Promise 错误。
+
 ### Notes
 
 - 本次 Changelog 记录建立了一个面向未来 NestHub 模块化工作的文档基线。
