@@ -3,8 +3,8 @@
   "name": "MoodNest",
   "version": "0.0.1",
   "minAppVersion": "1.5.0",
-  "description": "记录情绪、提供情绪急救，并将情绪整理归档到你的 Obsidian 中。",
-  "author": "Your Name",
+  "description": "Record emotions, get emotional first aid, and archive reflections into your vault.",
+  "author": "LINyiyi 011",
   "authorUrl": "https://your-site.com",
   "isDesktopOnly": false,
   "main": "main.js"
