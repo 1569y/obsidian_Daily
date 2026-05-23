@@ -24,8 +24,11 @@ import {
   type InvalidPayloadKind,
 } from "./llmResponseParsers";
 import {
+  buildResponsePreview,
+  extractProviderErrorMessage,
   formatInvalidPayloadErrorKind,
   getSafeEndpointPath,
+  getResponsePayloadCandidates,
   isAbortError,
   isQuotaOrRateLimitError,
   looksLikeProviderErrorText,
@@ -761,7 +764,7 @@ ${userMessage}
       }
 
       const firstData = firstAttempt.data;
-      const firstProviderError = this.extractProviderErrorMessage(firstData);
+      const firstProviderError = extractProviderErrorMessage(firstData);
       if (firstProviderError) {
         this.pushAttemptError(attemptState, "provider_error");
         this.logProviderPayloadError(firstData, context, firstProviderError, {
@@ -922,7 +925,7 @@ ${userMessage}
     }
 
     const retryData = retryAttempt.data;
-    const retryProviderError = this.extractProviderErrorMessage(retryData);
+    const retryProviderError = extractProviderErrorMessage(retryData);
     if (retryProviderError) {
       this.pushAttemptError(attemptState, "provider_error");
       this.logProviderPayloadError(retryData, context, retryProviderError, {
@@ -1081,7 +1084,7 @@ ${userMessage}
     }
 
     const streamData = streamAttempt.data;
-    const streamProviderError = this.extractProviderErrorMessage(streamData);
+    const streamProviderError = extractProviderErrorMessage(streamData);
     if (streamProviderError) {
       this.pushAttemptError(attemptState, "provider_error");
       this.logProviderPayloadError(streamData, context, streamProviderError, {
@@ -1327,7 +1330,7 @@ ${userMessage}
       return;
     }
 
-    const providerError = this.extractProviderErrorMessage(data);
+    const providerError = extractProviderErrorMessage(data);
     if (providerError) {
       this.logProviderPayloadError(data, context, providerError, meta);
       throw this.attachAttemptSummary(
@@ -1336,7 +1339,7 @@ ${userMessage}
       );
     }
 
-    const preview = this.buildResponsePreview(data);
+    const preview = buildResponsePreview(data);
     this.logNullChoicesPayloadIfNeeded(data, context, meta);
 
     console.error(
@@ -1491,298 +1494,6 @@ ${userMessage}
     return "";
   }
 
-  private extractTextFromContentValue(value: unknown, depth = 0): string {
-    if (depth > 4) {
-      return "";
-    }
-
-    if (typeof value === "string" && value.trim().length > 0) {
-      return value.trim();
-    }
-
-    if (Array.isArray(value)) {
-      const collected: string[] = [];
-
-      for (const item of value) {
-        const extracted = this.extractTextFromContentValue(item, depth + 1);
-        if (extracted) {
-          collected.push(extracted);
-        }
-      }
-
-      return collected.join("\n").trim();
-    }
-
-    if (!value || typeof value !== "object") {
-      return "";
-    }
-
-    const typedValue = value as Record<string, unknown>;
-
-    if (typeof typedValue.value === "string" && typedValue.value.trim().length > 0) {
-      return typedValue.value.trim();
-    }
-
-    if (typeof typedValue.text === "string" && typedValue.text.trim().length > 0) {
-      return typedValue.text.trim();
-    }
-
-    const nestedText = typedValue.text;
-    if (nestedText && typeof nestedText === "object") {
-      const extractedNestedText = this.extractTextFromContentValue(
-        nestedText,
-        depth + 1
-      );
-      if (extractedNestedText) {
-        return extractedNestedText;
-      }
-    }
-
-    const nestedContent = typedValue.content;
-    if (nestedContent !== undefined) {
-      const extractedContent = this.extractTextFromContentValue(
-        nestedContent,
-        depth + 1
-      );
-      if (extractedContent) {
-        return extractedContent;
-      }
-    }
-
-    const nestedParts = typedValue.parts;
-    if (nestedParts !== undefined) {
-      const extractedParts = this.extractTextFromContentValue(
-        nestedParts,
-        depth + 1
-      );
-      if (extractedParts) {
-        return extractedParts;
-      }
-    }
-
-    const nestedData = typedValue.data;
-    if (nestedData !== undefined) {
-      const extractedData = this.extractTextFromContentValue(
-        nestedData,
-        depth + 1
-      );
-      if (extractedData) {
-        return extractedData;
-      }
-    }
-
-    return "";
-  }
-
-  private getResponsePayloadCandidates(
-    data: unknown
-  ): Array<Record<string, unknown>> {
-    if (!data || typeof data !== "object") {
-      return [];
-    }
-
-    const responseData = data as Record<string, unknown>;
-    const candidates: Array<Record<string, unknown>> = [responseData];
-
-    const nestedKeys = ["data", "response", "result", "message", "reply", "answer"];
-    for (const key of nestedKeys) {
-      const nested = responseData[key];
-      if (nested && typeof nested === "object" && !Array.isArray(nested)) {
-        candidates.push(nested as Record<string, unknown>);
-      }
-    }
-
-    return candidates;
-  }
-
-  private extractMessageContentFromPayload(
-    payload: Record<string, unknown>
-  ): string {
-    const choices = Array.isArray(payload.choices) ? payload.choices : [];
-    const choice0 =
-      choices.length > 0 && choices[0] && typeof choices[0] === "object"
-        ? (choices[0] as Record<string, unknown>)
-        : null;
-
-    if (choice0) {
-      const message =
-        choice0.message && typeof choice0.message === "object"
-          ? (choice0.message as Record<string, unknown>)
-          : null;
-      const delta =
-        choice0.delta && typeof choice0.delta === "object"
-          ? (choice0.delta as Record<string, unknown>)
-          : null;
-
-      const messageText = this.extractTextFromContentValue(message?.content);
-      if (messageText) {
-        return messageText;
-      }
-
-      const choiceText = choice0.text;
-      if (typeof choiceText === "string" && choiceText.trim().length > 0) {
-        return choiceText.trim();
-      }
-
-      const deltaText = this.extractTextFromContentValue(delta?.content);
-      if (deltaText) {
-        return deltaText;
-      }
-    }
-
-    const candidates = Array.isArray(payload.candidates) ? payload.candidates : [];
-    const candidate0 =
-      candidates.length > 0 && candidates[0] && typeof candidates[0] === "object"
-        ? (candidates[0] as Record<string, unknown>)
-        : null;
-
-    const candidateText = this.extractTextFromContentValue(candidate0?.content);
-    if (candidateText) {
-      return candidateText;
-    }
-
-    const outputText = payload.output_text;
-    if (typeof outputText === "string" && outputText.trim().length > 0) {
-      return outputText.trim();
-    }
-
-    const directFieldKeys = ["content", "text", "message", "reply", "result", "answer"];
-    for (const key of directFieldKeys) {
-      const extracted = this.extractTextFromContentValue(payload[key]);
-      if (extracted) {
-        return extracted;
-      }
-    }
-
-    const output = Array.isArray(payload.output) ? payload.output : [];
-    if (output.length > 0) {
-      const output0 =
-        output[0] && typeof output[0] === "object"
-          ? (output[0] as Record<string, unknown>)
-          : null;
-
-      const outputTextContent = this.extractTextFromContentValue(output0?.content);
-      if (outputTextContent) {
-        return outputTextContent;
-      }
-    }
-
-    return "";
-  }
-
-  private buildResponsePreview(data: unknown): {
-    topLevelKeys: string[];
-    nestedPayloadKeys: string[][];
-    primaryPayloadKeys: string[];
-    choicesType: string;
-    choice0Keys: string[];
-    candidate0Keys: string[];
-    messageKeys: string[];
-    deltaKeys: string[];
-    outputType: string;
-    outputKeys: string[];
-    output0Keys: string[];
-    messageContentType: string;
-    messageContentPreview: string;
-    reasoningContentType: string;
-    reasoningContentPreview: string;
-    choiceTextType: string;
-    choiceTextPreview: string;
-    responsePreview: string;
-  } {
-    const responseData =
-      data && typeof data === "object" ? (data as Record<string, unknown>) : {};
-    const payloadCandidates = this.getResponsePayloadCandidates(responseData);
-    const primaryPayload =
-      payloadCandidates.find(
-        (payload) =>
-          Array.isArray(payload.choices) ||
-          Array.isArray(payload.output) ||
-          Array.isArray(payload.candidates) ||
-          payload.output_text !== undefined ||
-          payload.content !== undefined
-      ) ?? payloadCandidates[0] ?? {};
-    const choices = Array.isArray(primaryPayload.choices) ? primaryPayload.choices : [];
-    const choice0 =
-      choices.length > 0 && choices[0] && typeof choices[0] === "object"
-        ? (choices[0] as Record<string, unknown>)
-        : {};
-    const candidates = Array.isArray(primaryPayload.candidates)
-      ? primaryPayload.candidates
-      : [];
-    const candidate0 =
-      candidates.length > 0 && candidates[0] && typeof candidates[0] === "object"
-        ? (candidates[0] as Record<string, unknown>)
-        : {};
-    const message =
-      choice0.message && typeof choice0.message === "object"
-        ? (choice0.message as Record<string, unknown>)
-        : {};
-    const delta =
-      choice0.delta && typeof choice0.delta === "object"
-        ? (choice0.delta as Record<string, unknown>)
-        : {};
-    const messageContent = message.content;
-    const reasoningContent = message.reasoning_content;
-    const choiceText = choice0.text;
-    const output = primaryPayload.output;
-    const output0 =
-      Array.isArray(output) &&
-      output.length > 0 &&
-      output[0] &&
-      typeof output[0] === "object"
-        ? (output[0] as Record<string, unknown>)
-        : {};
-
-    return {
-      topLevelKeys: Object.keys(responseData),
-      nestedPayloadKeys: payloadCandidates.map((payload) => Object.keys(payload)),
-      primaryPayloadKeys: Object.keys(primaryPayload),
-      choicesType:
-        primaryPayload.choices === null
-          ? "null"
-          : Array.isArray(primaryPayload.choices)
-            ? "array"
-            : typeof primaryPayload.choices,
-      choice0Keys: Object.keys(choice0),
-      candidate0Keys: Object.keys(candidate0),
-      messageKeys: Object.keys(message),
-      deltaKeys: Object.keys(delta),
-      outputType: Array.isArray(output) ? "array" : typeof output,
-      outputKeys:
-        output && typeof output === "object" && !Array.isArray(output)
-          ? Object.keys(output as Record<string, unknown>)
-          : [],
-      output0Keys: Object.keys(output0),
-      messageContentType: Array.isArray(messageContent)
-        ? "array"
-        : typeof messageContent,
-      messageContentPreview: truncateForLog(
-        safeSerializeForLog(messageContent)
-      ),
-      reasoningContentType: Array.isArray(reasoningContent)
-        ? "array"
-        : typeof reasoningContent,
-      reasoningContentPreview: truncateForLog(
-        safeSerializeForLog(reasoningContent)
-      ),
-      choiceTextType: typeof choiceText,
-      choiceTextPreview: truncateForLog(safeSerializeForLog(choiceText)),
-      responsePreview: truncateForLog(safeSerializeForLog(data)),
-    };
-  }
-
-  private extractProviderErrorMessage(data: unknown): string {
-    for (const payload of this.getResponsePayloadCandidates(data)) {
-      const message = normalizeProviderError(payload);
-      if (message) {
-        return message;
-      }
-    }
-
-    return "";
-  }
-
   private createLiveSupportResultSafe(
     replyText: string,
     analysis: AgentAnalysis
@@ -1874,80 +1585,6 @@ ${userMessage}
     return /你想做什么方向|你有哪些技能|你最喜欢哪个|你更适合什么|你想选什么方向/.test(
       text
     );
-  }
-
-  private extractProviderErrorMessageFromPayload(
-    payload: Record<string, unknown>
-  ): string {
-    if (payload.error !== undefined) {
-      const errorText = this.extractErrorText(payload.error);
-      if (errorText) {
-        return errorText;
-      }
-    }
-
-    const messageText = this.extractErrorText(payload.message);
-    const codeValue = payload.code;
-    const codeText =
-      typeof codeValue === "string" || typeof codeValue === "number"
-        ? String(codeValue)
-        : "";
-    const hasNonSuccessCode =
-      codeText.length > 0 && !["0", "200", "ok", "success"].includes(codeText.toLowerCase());
-
-    if (hasNonSuccessCode && messageText) {
-      return `${codeText}: ${messageText}`;
-    }
-
-    if (payload.success === false && messageText) {
-      return messageText;
-    }
-
-    const hasStructuredContentShape =
-      Array.isArray(payload.choices) ||
-      Array.isArray(payload.output) ||
-      Array.isArray(payload.candidates) ||
-      payload.output_text !== undefined ||
-      payload.content !== undefined ||
-      payload.text !== undefined ||
-      payload.reply !== undefined ||
-      payload.result !== undefined ||
-      payload.answer !== undefined;
-
-    if (!hasStructuredContentShape && messageText && looksLikeProviderErrorText(messageText)) {
-      return messageText;
-    }
-
-    return "";
-  }
-
-  private extractErrorText(value: unknown): string {
-    if (typeof value === "string" && value.trim().length > 0) {
-      return value.trim();
-    }
-
-    if (!value || typeof value !== "object") {
-      return "";
-    }
-
-    const typedValue = value as Record<string, unknown>;
-    const preferredFields = [
-      typedValue.message,
-      typedValue.error,
-      typedValue.detail,
-      typedValue.type,
-      typedValue.code,
-    ];
-
-    for (const field of preferredFields) {
-      const extracted = this.extractTextFromContentValue(field);
-      if (extracted && looksLikeProviderErrorText(extracted)) {
-        return extracted;
-      }
-    }
-
-    const genericExtracted = this.extractTextFromContentValue(value);
-    return looksLikeProviderErrorText(genericExtracted) ? genericExtracted : "";
   }
 
   private logProviderPayloadError(
@@ -2046,7 +1683,7 @@ ${userMessage}
   }
 
   private hasNullChoicesPayload(data: unknown): boolean {
-    return this.getResponsePayloadCandidates(data).some(
+    return getResponsePayloadCandidates(data).some(
       (payload) => payload.choices === null
     );
   }
@@ -2155,7 +1792,7 @@ ${userMessage}
       usedThinkingDisabled: options.usedThinkingDisabled,
       errorKind: options.errorKind,
       retryReason: options.retryReason,
-      ...(options.data ? this.buildResponsePreview(options.data) : {}),
+      ...(options.data ? buildResponsePreview(options.data) : {}),
       ...(options.extra ?? {}),
     };
   }
@@ -2240,7 +1877,7 @@ ${userMessage}
   }
 
   private isReasoningOnlyStreamPayload(data: unknown): boolean {
-    const payloads = this.getResponsePayloadCandidates(data);
+    const payloads = getResponsePayloadCandidates(data);
     for (const payload of payloads) {
       if (!payload || typeof payload !== "object") {
         continue;
