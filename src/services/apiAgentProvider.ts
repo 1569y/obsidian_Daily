@@ -24,6 +24,17 @@ import {
   type InvalidPayloadKind,
 } from "./llmResponseParsers";
 import {
+  formatInvalidPayloadErrorKind,
+  getSafeEndpointPath,
+  isAbortError,
+  isQuotaOrRateLimitError,
+  looksLikeProviderErrorText,
+  normalizeChatCompletionsEndpoint,
+  safeSerializeForLog,
+  truncateForLog,
+  warnIfEndpointLooksIncomplete,
+} from "./llmClient";
+import {
   appendRecommendedActionHint,
   recommendSupportAction,
   shouldUseLocalFirstGentleClarify,
@@ -99,7 +110,6 @@ type AttemptErrorKind =
   | `invalid_payload:${InvalidPayloadKind}`;
 
 export class ApiAgentProvider {
-  private static readonly LOG_PREVIEW_LIMIT = 1500;
   private static readonly ANALYZE_TIMEOUT_MS = 30000;
   private static readonly REPLY_TIMEOUT_MS = 30000;
   private static readonly LIVE_HISTORY_LIMIT = 4;
@@ -113,7 +123,7 @@ export class ApiAgentProvider {
   constructor(private options: ApiAgentProviderOptions) {
     this.persona = options.persona;
     this.fallbackProvider = new RuleBasedAgentProvider(options.persona);
-    this.normalizedBaseUrl = this.normalizeChatCompletionsEndpoint(options.baseUrl);
+    this.normalizedBaseUrl = normalizeChatCompletionsEndpoint(options.baseUrl);
     this.providerProfile = getProviderProfile({
       providerType: options.providerType,
       baseUrl: this.normalizedBaseUrl,
@@ -236,7 +246,7 @@ ${rawText}
         copingDirection: this.asStringArray(parsed.copingDirection),
       };
     } catch (error) {
-      if (this.isAbortError(error)) {
+      if (isAbortError(error)) {
         console.warn("[ApiAgentProvider:analyze] API 分析请求超时，回退规则版。", {
           timeoutMs: ApiAgentProvider.ANALYZE_TIMEOUT_MS,
         });
@@ -560,7 +570,7 @@ ${userMessage}
         },
       };
     } catch (error) {
-      if (this.isAbortError(error)) {
+      if (isAbortError(error)) {
         console.warn("[ApiAgentProvider:replyTurn] API 对话请求超时，回退规则版。", {
           timeoutMs: ApiAgentProvider.REPLY_TIMEOUT_MS,
         });
@@ -583,7 +593,7 @@ ${userMessage}
         console.warn(
           "[ApiAgentProvider:replyTurn] 使用截断 JSON 中提取到的 replyText 前缀作为降级回复。",
           {
-            replyTextPreview: this.truncateForLog(extractedReplyText),
+            replyTextPreview: truncateForLog(extractedReplyText),
           }
         );
       }
@@ -683,7 +693,11 @@ ${userMessage}
     signal: AbortSignal,
     context: ChatCompletionRequestKind
   ): Promise<ChatCompletionRequestResult> {
-    this.warnIfEndpointLooksIncomplete(context);
+    warnIfEndpointLooksIncomplete(
+      context,
+      this.normalizedBaseUrl,
+      this.options.model
+    );
 
     const attemptState = this.createAttemptState();
     const preferDisableThinking = this.shouldDisableThinking();
@@ -724,7 +738,7 @@ ${userMessage}
               errorKind: "http_error",
               extra: {
                 status: firstAttempt.status,
-                errorPreview: this.truncateForLog(firstAttempt.errorText ?? ""),
+                errorPreview: truncateForLog(firstAttempt.errorText ?? ""),
               },
             })
           );
@@ -788,7 +802,7 @@ ${userMessage}
       this.pushAttemptError(
         attemptState,
         invalidPayloadKind
-          ? this.formatInvalidPayloadErrorKind(invalidPayloadKind)
+          ? formatInvalidPayloadErrorKind(invalidPayloadKind)
           : "empty_content"
       );
       this.logNullChoicesPayloadIfNeeded(firstData, context, {
@@ -882,7 +896,7 @@ ${userMessage}
             extra: {
               willRetryWithoutJsonMode: false,
               status: retryAttempt.status,
-              errorPreview: this.truncateForLog(retryAttempt.errorText ?? ""),
+              errorPreview: truncateForLog(retryAttempt.errorText ?? ""),
             },
           })
         );
@@ -942,7 +956,7 @@ ${userMessage}
       this.pushAttemptError(
         attemptState,
         invalidPayloadKind
-          ? this.formatInvalidPayloadErrorKind(invalidPayloadKind)
+          ? formatInvalidPayloadErrorKind(invalidPayloadKind)
           : "empty_content"
       );
       this.logNullChoicesPayloadIfNeeded(retryData, context, {
@@ -1041,7 +1055,7 @@ ${userMessage}
             errorKind: "http_error",
             extra: {
               status: streamAttempt.status,
-              errorPreview: this.truncateForLog(streamAttempt.errorText ?? ""),
+              errorPreview: truncateForLog(streamAttempt.errorText ?? ""),
             },
           })
         );
@@ -1137,12 +1151,12 @@ ${userMessage}
     const rawText = await response.text();
 
     if (!response.ok) {
-      const quotaOrRateLimit = this.isQuotaOrRateLimitError(response.status, rawText);
+      const quotaOrRateLimit = isQuotaOrRateLimitError(response.status, rawText);
       if (quotaOrRateLimit) {
         console.warn("API 额度不足或限流，已停止 API 尝试并回退规则版。", {
           status: response.status,
           endpoint: this.normalizedBaseUrl,
-          bodyPreview: this.truncateForLog(rawText),
+          bodyPreview: truncateForLog(rawText),
         });
       }
 
@@ -1177,8 +1191,8 @@ ${userMessage}
         usedJsonMode: options.jsonMode,
         usedThinkingDisabled: options.disableThinking,
         stream: options.stream,
-        endpointPath: this.getSafeEndpointPath(),
-        responsePreview: this.truncateForLog(rawText),
+        endpointPath: getSafeEndpointPath(this.normalizedBaseUrl),
+        responsePreview: truncateForLog(rawText),
         error,
       });
       throw error;
@@ -1218,7 +1232,7 @@ ${userMessage}
         `[ApiAgentProvider:${context}] JSON mode 请求返回 400，尝试不带 response_format 重试。`,
         {
           status: response.status,
-          errorPreview: this.truncateForLog(errorText),
+          errorPreview: truncateForLog(errorText),
         }
       );
 
@@ -1287,8 +1301,8 @@ ${userMessage}
       console.error(
         `[ApiAgentProvider:${context}] JSON 解析失败，准备回退规则版。`,
         {
-          rawContentPreview: this.truncateForLog(rawContent),
-          cleanedContentPreview: this.truncateForLog(cleaned),
+          rawContentPreview: truncateForLog(rawContent),
+          cleanedContentPreview: truncateForLog(cleaned),
           error,
         }
       );
@@ -1362,7 +1376,7 @@ ${userMessage}
     console.error(
       `[ApiAgentProvider:${context}] 未提取到完整 JSON 对象，准备回退规则版。`,
       {
-        rawContentPreview: this.truncateForLog(rawContent),
+        rawContentPreview: truncateForLog(rawContent),
       }
     );
 
@@ -1743,18 +1757,18 @@ ${userMessage}
       messageContentType: Array.isArray(messageContent)
         ? "array"
         : typeof messageContent,
-      messageContentPreview: this.truncateForLog(
-        this.safeSerializeForLog(messageContent)
+      messageContentPreview: truncateForLog(
+        safeSerializeForLog(messageContent)
       ),
       reasoningContentType: Array.isArray(reasoningContent)
         ? "array"
         : typeof reasoningContent,
-      reasoningContentPreview: this.truncateForLog(
-        this.safeSerializeForLog(reasoningContent)
+      reasoningContentPreview: truncateForLog(
+        safeSerializeForLog(reasoningContent)
       ),
       choiceTextType: typeof choiceText,
-      choiceTextPreview: this.truncateForLog(this.safeSerializeForLog(choiceText)),
-      responsePreview: this.truncateForLog(this.safeSerializeForLog(data)),
+      choiceTextPreview: truncateForLog(safeSerializeForLog(choiceText)),
+      responsePreview: truncateForLog(safeSerializeForLog(data)),
     };
   }
 
@@ -1845,66 +1859,6 @@ ${userMessage}
 
   */
 
-  private truncateForLog(value: string): string {
-    const text =
-      typeof value === "string" ? value : this.safeSerializeForLog(value);
-
-    if (text.length <= ApiAgentProvider.LOG_PREVIEW_LIMIT) {
-      return text;
-    }
-
-    return `${text.slice(0, ApiAgentProvider.LOG_PREVIEW_LIMIT)}...(truncated)`;
-  }
-
-  private safeSerializeForLog(value: unknown): string {
-    try {
-      const serialized = JSON.stringify(this.sanitizeForLog(value));
-      if (typeof serialized === "string") {
-        return serialized;
-      }
-
-      return String(value);
-    } catch {
-      return "[unserializable response]";
-    }
-  }
-
-  private sanitizeForLog(
-    value: unknown,
-    seen: WeakSet<object> = new WeakSet<object>()
-  ): unknown {
-    if (typeof value === "string") {
-      return value.replace(/Bearer\s+[A-Za-z0-9._-]+/gi, "Bearer [redacted]");
-    }
-
-    if (!value || typeof value !== "object") {
-      return value;
-    }
-
-    if (seen.has(value)) {
-      return "[circular]";
-    }
-
-    seen.add(value);
-
-    if (Array.isArray(value)) {
-      return value.map((item) => this.sanitizeForLog(item, seen));
-    }
-
-    const sanitized: Record<string, unknown> = {};
-
-    for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
-      if (/authorization|api[_-]?key|token/i.test(key)) {
-        sanitized[key] = "[redacted]";
-        continue;
-      }
-
-      sanitized[key] = this.sanitizeForLog(item, seen);
-    }
-
-    return sanitized;
-  }
-
   private isVagueEmotionExpression(text: string): boolean {
     return (
       /有点烦|有些烦|心里堵|堵得慌|有点难受|说不上来|说不出来|说不上|不知道为什么/.test(
@@ -1918,12 +1872,6 @@ ${userMessage}
 
   private containsOpenEndedDecisionQuestion(text: string): boolean {
     return /你想做什么方向|你有哪些技能|你最喜欢哪个|你更适合什么|你想选什么方向/.test(
-      text
-    );
-  }
-
-  private looksLikeProviderErrorText(text: string): boolean {
-    return /error|invalid|unauthorized|forbidden|quota|rate limit|not found|denied|failed|exception|超时|错误|失败|无效|额度|限制|拒绝/i.test(
       text
     );
   }
@@ -1966,7 +1914,7 @@ ${userMessage}
       payload.result !== undefined ||
       payload.answer !== undefined;
 
-    if (!hasStructuredContentShape && messageText && this.looksLikeProviderErrorText(messageText)) {
+    if (!hasStructuredContentShape && messageText && looksLikeProviderErrorText(messageText)) {
       return messageText;
     }
 
@@ -1993,13 +1941,13 @@ ${userMessage}
 
     for (const field of preferredFields) {
       const extracted = this.extractTextFromContentValue(field);
-      if (extracted && this.looksLikeProviderErrorText(extracted)) {
+      if (extracted && looksLikeProviderErrorText(extracted)) {
         return extracted;
       }
     }
 
     const genericExtracted = this.extractTextFromContentValue(value);
-    return this.looksLikeProviderErrorText(genericExtracted) ? genericExtracted : "";
+    return looksLikeProviderErrorText(genericExtracted) ? genericExtracted : "";
   }
 
   private logProviderPayloadError(
@@ -2041,7 +1989,7 @@ ${userMessage}
         choices: null,
         stream: true,
         reasoningOnly,
-        rawPreview: this.truncateForLog(rawText),
+        rawPreview: truncateForLog(rawText),
       };
     }
 
@@ -2095,89 +2043,6 @@ ${userMessage}
       content: trimmedContent,
       reasoningOnly: sawReasoning && trimmedContent.length === 0,
     };
-  }
-
-  private getSafeEndpointPath(): string {
-    try {
-      return new URL(this.normalizedBaseUrl).pathname || "/";
-    } catch {
-      const rawBaseUrl = this.normalizedBaseUrl.trim();
-      const schemeIndex = rawBaseUrl.indexOf("://");
-      if (schemeIndex === -1) {
-        return rawBaseUrl;
-      }
-
-      const pathStart = rawBaseUrl.indexOf("/", schemeIndex + 3);
-      return pathStart === -1 ? "/" : rawBaseUrl.slice(pathStart);
-    }
-  }
-
-  private warnIfEndpointLooksIncomplete(context: ChatCompletionRequestKind): void {
-    const endpointPath = this.getSafeEndpointPath();
-    if (/\/chat\/completions\/?$/i.test(endpointPath)) {
-      return;
-    }
-
-    console.debug(
-      `[ApiAgentProvider:${context}] 当前 baseUrl 看起来不是完整的 /chat/completions endpoint。当前 fetch 实现需要完整 endpoint。`,
-      {
-        endpointPath,
-        model: this.options.model,
-      }
-    );
-  }
-
-  private normalizeChatCompletionsEndpoint(baseUrl: string): string {
-    const trimmed = baseUrl.trim();
-    if (!trimmed) {
-      return trimmed;
-    }
-
-    try {
-      const parsed = new URL(trimmed);
-      if (/\/chat\/completions\/?$/i.test(parsed.pathname)) {
-        return parsed.toString();
-      }
-
-      if (/\/v1\/?$/i.test(parsed.pathname)) {
-        parsed.pathname = `${parsed.pathname.replace(/\/+$/, "")}/chat/completions`;
-        return parsed.toString();
-      }
-
-      return parsed.toString();
-    } catch (error) {
-      console.warn(
-        "[ApiAgentProvider] 无法解析 baseUrl，保留原值，不自动补全 /chat/completions。",
-        {
-          baseUrl: trimmed,
-          error,
-        }
-      );
-      return trimmed;
-    }
-  }
-
-  private formatInvalidPayloadErrorKind(
-    kind: InvalidPayloadKind
-  ): `invalid_payload:${InvalidPayloadKind}` {
-    return `invalid_payload:${kind}`;
-  }
-
-  private isQuotaOrRateLimitError(status: number, bodyText: string): boolean {
-    if (status === 429) {
-      return true;
-    }
-
-    const normalizedBody = bodyText.toLowerCase();
-    return (
-      normalizedBody.includes("insufficient_quota") ||
-      normalizedBody.includes("rate_limit") ||
-      normalizedBody.includes("too many requests") ||
-      normalizedBody.includes("you exceeded your current quota") ||
-      normalizedBody.includes("allocated quota exceeded") ||
-      normalizedBody.includes("token-limit") ||
-      normalizedBody.includes("quota")
-    );
   }
 
   private hasNullChoicesPayload(data: unknown): boolean {
@@ -2284,7 +2149,7 @@ ${userMessage}
       providerProfileId: this.providerProfile.id,
       parserFamily: this.getParserFamily(),
       attemptMode,
-      endpointPath: this.getSafeEndpointPath(),
+      endpointPath: getSafeEndpointPath(this.normalizedBaseUrl),
       model: this.options.model,
       usedJsonMode: options.usedJsonMode,
       usedThinkingDisabled: options.usedThinkingDisabled,
@@ -2388,12 +2253,6 @@ ${userMessage}
     }
 
     return false;
-  }
-
-  private isAbortError(error: unknown): boolean {
-    return error instanceof DOMException
-      ? error.name === "AbortError"
-      : error instanceof Error && error.name === "AbortError";
   }
 
   private safeText(value: unknown, fallback: string): string {
