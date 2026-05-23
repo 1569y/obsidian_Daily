@@ -20,3 +20,14 @@ data.json
 
 # Exclude macOS Finder (System Explorer) View States
 .DS_Store
+
+# Optional Whisper.cpp runtime assets
+vendor/whispercpp/tmp/
+vendor/whispercpp/models/*.bin
+vendor/whispercpp/models/*.gguf
+vendor/whispercpp/models/*.pt
+vendor/whispercpp/bin/**
+
+# Optional large grounding audio
+Assets/Grounding/listen/**/*.mp3
+Assets/Grounding/listen/**/*.wav
