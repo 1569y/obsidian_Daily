@@ -1,6 +1,7 @@
 import {
   classifyInvalidPayload,
   normalizeProviderError,
+  parseOpenAIChatStreamChunk,
   type InvalidPayloadKind,
 } from "./llmResponseParsers";
 import type {
@@ -9,6 +10,38 @@ import type {
 } from "./llmProviderProfiles";
 
 const DEFAULT_LOG_PREVIEW_LIMIT = 1500;
+
+type LogAttemptMode = "non_stream_json" | "non_stream_plain" | "stream_plain";
+type LogRetryReason =
+  | "http_400"
+  | "empty_content"
+  | "thinking_400"
+  | "stream_empty_content"
+  | "invalid_payload"
+  | "provider_error";
+
+interface PayloadLogMetaOptions {
+  usedJsonMode?: boolean;
+  willRetryWithoutJsonMode?: boolean;
+  usedThinkingDisabled?: boolean;
+  stream?: boolean;
+  retryReason?: LogRetryReason;
+}
+
+interface BuildAttemptLogMetaOptions {
+  usedJsonMode: boolean;
+  usedThinkingDisabled: boolean;
+  retryReason?: LogRetryReason;
+  errorKind?: "http_error" | "provider_error" | "empty_content" | "invalid_payload";
+  data?: unknown;
+  extra?: Record<string, unknown>;
+}
+
+type BuildAttemptLogMeta<TContext extends string = string> = (
+  context: TContext,
+  attemptMode: LogAttemptMode,
+  options: BuildAttemptLogMetaOptions
+) => Record<string, unknown>;
 
 export function normalizeChatCompletionsEndpoint(baseUrl: string): string {
   const trimmed = baseUrl.trim();
@@ -570,4 +603,127 @@ export function isReasoningOnlyStreamPayload(data: unknown): boolean {
   }
 
   return false;
+}
+
+export function parseSseContent(rawText: string): {
+  content: string;
+  reasoningOnly: boolean;
+} {
+  const lines = rawText.split(/\r?\n/);
+  let finalContent = "";
+  let sawReasoning = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("data:")) {
+      continue;
+    }
+
+    const payload = trimmed.slice(5).trim();
+    if (!payload || payload === "[DONE]") {
+      continue;
+    }
+
+    try {
+      const chunk = JSON.parse(payload) as Record<string, unknown>;
+      const parsedChunk = parseOpenAIChatStreamChunk(chunk);
+
+      if (parsedChunk.contentDelta.trim().length > 0) {
+        finalContent += parsedChunk.contentDelta;
+      }
+
+      if (parsedChunk.reasoningDelta.trim().length > 0) {
+        sawReasoning = true;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  const trimmedContent = finalContent.trim();
+  return {
+    content: trimmedContent,
+    reasoningOnly: sawReasoning && trimmedContent.length === 0,
+  };
+}
+
+export function parseStreamResponsePayload(rawText: string): unknown {
+  const { content, reasoningOnly } = parseSseContent(rawText);
+  if (!content) {
+    return {
+      choices: null,
+      stream: true,
+      reasoningOnly,
+      rawPreview: truncateForLog(rawText),
+    };
+  }
+
+  return {
+    choices: [
+      {
+        message: {
+          content,
+        },
+      },
+    ],
+    stream: true,
+    reasoningOnly,
+  };
+}
+
+export function logProviderPayloadError<TContext extends string>(
+  data: unknown,
+  context: TContext,
+  providerError: string,
+  buildAttemptLogMeta: BuildAttemptLogMeta<TContext>,
+  meta?: PayloadLogMetaOptions
+): void {
+  console.debug(
+    `[ApiAgentProvider:${context}] 妫€娴嬪埌 provider error payload锛屽噯澶囧洖閫€瑙勫垯鐗堛€俙,
+    `,
+    buildAttemptLogMeta(
+      context,
+      meta?.stream ? "stream_plain" : meta?.usedJsonMode ? "non_stream_json" : "non_stream_plain",
+      {
+        usedJsonMode: meta?.usedJsonMode ?? true,
+        usedThinkingDisabled: meta?.usedThinkingDisabled ?? false,
+        retryReason: meta?.retryReason,
+        errorKind: "provider_error",
+        data,
+        extra: {
+          willRetryWithoutJsonMode: meta?.willRetryWithoutJsonMode ?? false,
+          providerError,
+        },
+      }
+    )
+  );
+}
+
+export function logNullChoicesPayloadIfNeeded<TContext extends string>(
+  data: unknown,
+  context: TContext,
+  buildAttemptLogMeta: BuildAttemptLogMeta<TContext>,
+  meta?: PayloadLogMetaOptions
+): void {
+  if (!hasNullChoicesPayload(data)) {
+    return;
+  }
+
+  console.debug(
+    `[ApiAgentProvider:${context}] provider returned choices:null; this is an invalid/empty chat completion payload, not a parser miss.`,
+    buildAttemptLogMeta(
+      context,
+      meta?.stream ? "stream_plain" : meta?.usedJsonMode ? "non_stream_json" : "non_stream_plain",
+      {
+        usedJsonMode: meta?.usedJsonMode ?? true,
+        usedThinkingDisabled: meta?.usedThinkingDisabled ?? false,
+        retryReason: meta?.retryReason,
+        errorKind: "invalid_payload",
+        extra: {
+          invalidPayloadMessage:
+            "invalid OpenAI-compatible payload: choices is null",
+        },
+      }
+    )
+  );
 }

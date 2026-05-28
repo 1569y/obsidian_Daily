@@ -780,7 +780,8 @@ ${userMessage}
           firstData,
           context,
           firstProviderError,
-          this.buildAttemptLogMeta.bind(this),
+          (context, attemptMode, options) =>
+            this.buildAttemptLogMeta(context, attemptMode, options),
           {
             usedJsonMode: true,
             willRetryWithoutJsonMode: false,
@@ -826,7 +827,8 @@ ${userMessage}
       logNullChoicesPayloadIfNeeded(
         firstData,
         context,
-        this.buildAttemptLogMeta.bind(this),
+        (context, attemptMode, options) =>
+          this.buildAttemptLogMeta(context, attemptMode, options),
         {
           usedJsonMode: true,
           willRetryWithoutJsonMode: true,
@@ -952,7 +954,8 @@ ${userMessage}
         retryData,
         context,
         retryProviderError,
-        this.buildAttemptLogMeta.bind(this),
+        (context, attemptMode, options) =>
+          this.buildAttemptLogMeta(context, attemptMode, options),
         {
           usedJsonMode: false,
           willRetryWithoutJsonMode: false,
@@ -991,7 +994,8 @@ ${userMessage}
       logNullChoicesPayloadIfNeeded(
         retryData,
         context,
-        this.buildAttemptLogMeta.bind(this),
+        (context, attemptMode, options) =>
+          this.buildAttemptLogMeta(context, attemptMode, options),
         {
           usedJsonMode: false,
           willRetryWithoutJsonMode: false,
@@ -1122,7 +1126,8 @@ ${userMessage}
         streamData,
         context,
         streamProviderError,
-        this.buildAttemptLogMeta.bind(this),
+        (context, attemptMode, options) =>
+          this.buildAttemptLogMeta(context, attemptMode, options),
         {
           usedJsonMode: false,
           willRetryWithoutJsonMode: false,
@@ -1373,7 +1378,8 @@ ${userMessage}
         data,
         context,
         providerError,
-        this.buildAttemptLogMeta.bind(this),
+        (context, attemptMode, options) =>
+          this.buildAttemptLogMeta(context, attemptMode, options),
         meta
       );
       throw this.attachAttemptSummary(
@@ -1386,7 +1392,8 @@ ${userMessage}
     logNullChoicesPayloadIfNeeded(
       data,
       context,
-      this.buildAttemptLogMeta.bind(this),
+      (context, attemptMode, options) =>
+        this.buildAttemptLogMeta(context, attemptMode, options),
       meta
     );
 
