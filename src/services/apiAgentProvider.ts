@@ -29,6 +29,7 @@ import {
   buildResponsePreview,
   createAttemptState,
   extractProviderErrorMessage,
+  fetchChatCompletionAttempt as fetchChatCompletionAttemptPure,
   formatInvalidPayloadErrorKind,
   getSafeEndpointPath,
   getInvalidPayloadKind,
@@ -1165,6 +1166,7 @@ ${userMessage}
     };
   }
 
+/*
   private async fetchChatCompletionAttempt(
     messages: Array<{ role: string; content: string }>,
     temperature: number,
@@ -1237,6 +1239,29 @@ ${userMessage}
       });
       throw error;
     }
+  }
+*/
+
+  private async fetchChatCompletionAttempt(
+    messages: Array<{ role: string; content: string }>,
+    temperature: number,
+    maxTokens: number,
+    signal: AbortSignal,
+    options: ChatCompletionAttemptOptions
+  ): Promise<ChatCompletionAttemptResult> {
+    const body = this.buildChatCompletionBody(messages, temperature, maxTokens, {
+      jsonMode: options.jsonMode,
+      disableThinking: options.disableThinking,
+      stream: options.stream,
+    });
+
+    return fetchChatCompletionAttemptPure({
+      endpoint: this.normalizedBaseUrl,
+      apiKey: this.options.apiKey,
+      body,
+      signal,
+      options,
+    });
   }
 
   /*

@@ -46,6 +46,31 @@ export interface LLMAttemptLogInput {
   logPrefix: string;
 }
 
+export interface LLMFetchAttemptOptions {
+  jsonMode: boolean;
+  disableThinking: boolean;
+  stream: boolean;
+}
+
+export interface LLMFetchAttemptInput {
+  endpoint: string;
+  apiKey: string;
+  body: Record<string, unknown>;
+  signal: AbortSignal;
+  options: LLMFetchAttemptOptions;
+}
+
+export interface LLMFetchAttemptResult {
+  ok: boolean;
+  status: number;
+  data?: unknown;
+  errorText?: string;
+  quotaOrRateLimit?: boolean;
+  usedJsonMode: boolean;
+  usedThinkingDisabled: boolean;
+  stream: boolean;
+}
+
 interface PayloadLogMetaOptions {
   usedJsonMode?: boolean;
   willRetryWithoutJsonMode?: boolean;
@@ -256,6 +281,139 @@ export function formatInvalidPayloadErrorKind(
   kind: InvalidPayloadKind
 ): `invalid_payload:${InvalidPayloadKind}` {
   return `invalid_payload:${kind}`;
+}
+
+/*
+export async function fetchChatCompletionAttempt(
+  input: LLMFetchAttemptInput
+): Promise<LLMFetchAttemptResult> {
+  const response = await fetch(input.endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${input.apiKey}`,
+      "Content-Type": "application/json",
+    },
+    signal: input.signal,
+    body: JSON.stringify(input.body),
+  });
+
+  const rawText = await response.text();
+
+  if (!response.ok) {
+    const quotaOrRateLimit = isQuotaOrRateLimitError(response.status, rawText);
+    if (quotaOrRateLimit) {
+      console.warn("API 棰濆害涓嶈冻鎴栭檺娴侊紝宸插仠姝?API 灏濊瘯骞跺洖閫€瑙勫垯鐗堛€?, {
+        status: response.status,
+        endpoint: input.endpoint,
+        bodyPreview: truncateForLog(rawText),
+      });
+    }
+
+    return {
+      ok: false,
+      status: response.status,
+      errorText: rawText,
+      quotaOrRateLimit,
+      usedJsonMode: input.options.jsonMode,
+      usedThinkingDisabled: input.options.disableThinking,
+      stream: input.options.stream,
+    };
+  }
+
+  try {
+    const data = input.options.stream
+      ? parseStreamResponsePayload(rawText)
+      : rawText.trim().length > 0
+        ? (JSON.parse(rawText) as unknown)
+        : {};
+
+    return {
+      ok: true,
+      status: response.status,
+      data,
+      usedJsonMode: input.options.jsonMode,
+      usedThinkingDisabled: input.options.disableThinking,
+      stream: input.options.stream,
+    };
+  } catch (error) {
+    console.error("[ApiAgentProvider] API 杩斿洖浜嗘棤娉曡В鏋愮殑 JSON銆?, {
+      usedJsonMode: input.options.jsonMode,
+      usedThinkingDisabled: input.options.disableThinking,
+      stream: input.options.stream,
+      endpointPath: getSafeEndpointPath(input.endpoint),
+      responsePreview: truncateForLog(rawText),
+      error,
+    });
+    throw error;
+  }
+}
+*/
+
+export async function fetchChatCompletionAttempt(
+  input: LLMFetchAttemptInput
+): Promise<LLMFetchAttemptResult> {
+  const response = await fetch(input.endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${input.apiKey}`,
+      "Content-Type": "application/json",
+    },
+    signal: input.signal,
+    body: JSON.stringify(input.body),
+  });
+
+  const rawText = await response.text();
+
+  if (!response.ok) {
+    const quotaOrRateLimit = isQuotaOrRateLimitError(response.status, rawText);
+    if (quotaOrRateLimit) {
+      console.warn(
+        "API quota or rate-limit detected; stop API attempt and fall back.",
+        {
+          status: response.status,
+          endpoint: input.endpoint,
+          bodyPreview: truncateForLog(rawText),
+        }
+      );
+    }
+
+    return {
+      ok: false,
+      status: response.status,
+      errorText: rawText,
+      quotaOrRateLimit,
+      usedJsonMode: input.options.jsonMode,
+      usedThinkingDisabled: input.options.disableThinking,
+      stream: input.options.stream,
+    };
+  }
+
+  try {
+    const data = input.options.stream
+      ? parseStreamResponsePayload(rawText)
+      : rawText.trim().length > 0
+        ? (JSON.parse(rawText) as unknown)
+        : {};
+
+    return {
+      ok: true,
+      status: response.status,
+      data,
+      usedJsonMode: input.options.jsonMode,
+      usedThinkingDisabled: input.options.disableThinking,
+      stream: input.options.stream,
+    };
+  } catch (error) {
+    console.error("[ApiAgentProvider] API returned invalid JSON payload.", {
+      usedJsonMode: input.options.jsonMode,
+      usedThinkingDisabled: input.options.disableThinking,
+      stream: input.options.stream,
+      endpointPath: getSafeEndpointPath(input.endpoint),
+      responsePreview: truncateForLog(rawText),
+      error,
+    });
+    throw error;
+  }
 }
 
 export function createAttemptState(): AttemptState {
