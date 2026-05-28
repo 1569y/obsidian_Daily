@@ -15,6 +15,7 @@ export type LLMAttemptMode =
   | "non_stream_json"
   | "non_stream_plain"
   | "stream_plain";
+export type LLMFinalAttemptMode = LLMAttemptMode | "rule_based_fallback";
 export type LLMRetryReason =
   | "http_400"
   | "empty_content"
@@ -27,6 +28,23 @@ export type LLMAttemptErrorKind =
   | "provider_error"
   | "empty_content"
   | "invalid_payload";
+export type LLMAttemptStatus = "success" | "fallback";
+
+export interface LLMAttemptSummary {
+  finalAttemptMode: LLMFinalAttemptMode;
+  status: LLMAttemptStatus;
+  retryCount: number;
+  errorTrail: string[];
+  textLength: number;
+  reasoningOnly: boolean;
+}
+
+export interface LLMAttemptLogInput {
+  providerProfileId: string;
+  parserFamily: LLMResponseParserFamily;
+  summary: LLMAttemptSummary;
+  logPrefix: string;
+}
 
 interface PayloadLogMetaOptions {
   usedJsonMode?: boolean;
@@ -646,6 +664,20 @@ export function buildAttemptLogMeta<TContext extends string>(
     ...(input.data ? buildResponsePreview(input.data) : {}),
     ...(input.extra ?? {}),
   };
+}
+
+export function logAttemptSummary(input: LLMAttemptLogInput): void {
+  const trail =
+    input.summary.errorTrail.length > 0
+      ? input.summary.errorTrail.join(">")
+      : "none";
+  const message = `${input.logPrefix} provider=${input.providerProfileId} parser=${input.parserFamily} final=${input.summary.finalAttemptMode} status=${input.summary.status} retries=${input.summary.retryCount} errorTrail=${trail} textLength=${input.summary.textLength} reasoningOnly=${input.summary.reasoningOnly}`;
+  if (input.summary.status === "fallback") {
+    console.warn(message);
+    return;
+  }
+
+  console.debug(message);
 }
 
 export function getParserFamily(

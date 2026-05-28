@@ -47,9 +47,11 @@ import {
   pushAttemptError,
   safeSerializeForLog,
   shouldTryStreamFallback,
+  logAttemptSummary as logAttemptSummaryPure,
   truncateForLog,
   type AttemptErrorKind,
   type AttemptState,
+  type LLMAttemptSummary,
   warnIfEndpointLooksIncomplete,
 } from "./llmClient";
 import {
@@ -1692,22 +1694,13 @@ ${userMessage}
     });
   }
 
-  private logAttemptSummary(summary: {
-    finalAttemptMode: "non_stream_json" | "non_stream_plain" | "stream_plain" | "rule_based_fallback";
-    status: "success" | "fallback";
-    retryCount: number;
-    errorTrail: string[];
-    textLength: number;
-    reasoningOnly: boolean;
-  }): void {
-    const trail = summary.errorTrail.length > 0 ? summary.errorTrail.join(">") : "none";
-    const message = `[MoodNest LLM attempt summary] provider=${this.providerProfile.id} parser=${getParserFamily(this.providerProfile)} final=${summary.finalAttemptMode} status=${summary.status} retries=${summary.retryCount} errorTrail=${trail} textLength=${summary.textLength} reasoningOnly=${summary.reasoningOnly}`;
-    if (summary.status === "fallback") {
-      console.warn(message);
-      return;
-    }
-
-    console.debug(message);
+  private logAttemptSummary(summary: LLMAttemptSummary): void {
+    logAttemptSummaryPure({
+      providerProfileId: this.providerProfile.id,
+      parserFamily: getParserFamily(this.providerProfile),
+      summary,
+      logPrefix: "[MoodNest LLM attempt summary]",
+    });
   }
 
   private logFallbackAttemptSummary(error: unknown): void {
