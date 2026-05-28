@@ -11,35 +11,57 @@ import type {
 
 const DEFAULT_LOG_PREVIEW_LIMIT = 1500;
 
-type LogAttemptMode = "non_stream_json" | "non_stream_plain" | "stream_plain";
-type LogRetryReason =
+export type LLMAttemptMode =
+  | "non_stream_json"
+  | "non_stream_plain"
+  | "stream_plain";
+export type LLMRetryReason =
   | "http_400"
   | "empty_content"
   | "thinking_400"
   | "stream_empty_content"
   | "invalid_payload"
   | "provider_error";
+export type LLMAttemptErrorKind =
+  | "http_error"
+  | "provider_error"
+  | "empty_content"
+  | "invalid_payload";
 
 interface PayloadLogMetaOptions {
   usedJsonMode?: boolean;
   willRetryWithoutJsonMode?: boolean;
   usedThinkingDisabled?: boolean;
   stream?: boolean;
-  retryReason?: LogRetryReason;
+  retryReason?: LLMRetryReason;
 }
 
 interface BuildAttemptLogMetaOptions {
   usedJsonMode: boolean;
   usedThinkingDisabled: boolean;
-  retryReason?: LogRetryReason;
-  errorKind?: "http_error" | "provider_error" | "empty_content" | "invalid_payload";
+  retryReason?: LLMRetryReason;
+  errorKind?: LLMAttemptErrorKind;
+  data?: unknown;
+  extra?: Record<string, unknown>;
+}
+
+export interface BuildAttemptLogMetaInput<TContext extends string> {
+  context: TContext;
+  attemptMode: LLMAttemptMode;
+  providerProfile: Pick<LLMProviderProfile, "id" | "responseParser">;
+  normalizedBaseUrl: string;
+  model: string;
+  usedJsonMode: boolean;
+  usedThinkingDisabled: boolean;
+  retryReason?: LLMRetryReason;
+  errorKind?: LLMAttemptErrorKind;
   data?: unknown;
   extra?: Record<string, unknown>;
 }
 
 type BuildAttemptLogMeta<TContext extends string = string> = (
   context: TContext,
-  attemptMode: LogAttemptMode,
+  attemptMode: LLMAttemptMode,
   options: BuildAttemptLogMetaOptions
 ) => Record<string, unknown>;
 
@@ -604,6 +626,25 @@ export function buildResponsePreview(data: unknown): {
     choiceTextType: typeof choiceText,
     choiceTextPreview: truncateForLog(safeSerializeForLog(choiceText)),
     responsePreview: truncateForLog(safeSerializeForLog(data)),
+  };
+}
+
+export function buildAttemptLogMeta<TContext extends string>(
+  input: BuildAttemptLogMetaInput<TContext>
+): Record<string, unknown> {
+  return {
+    requestKind: input.context,
+    providerProfileId: input.providerProfile.id,
+    parserFamily: getParserFamily(input.providerProfile),
+    attemptMode: input.attemptMode,
+    endpointPath: getSafeEndpointPath(input.normalizedBaseUrl),
+    model: input.model,
+    usedJsonMode: input.usedJsonMode,
+    usedThinkingDisabled: input.usedThinkingDisabled,
+    errorKind: input.errorKind,
+    retryReason: input.retryReason,
+    ...(input.data ? buildResponsePreview(input.data) : {}),
+    ...(input.extra ?? {}),
   };
 }
 

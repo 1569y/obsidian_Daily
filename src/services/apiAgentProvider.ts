@@ -25,6 +25,7 @@ import {
 } from "./llmResponseParsers";
 import {
   attachAttemptSummary,
+  buildAttemptLogMeta as buildAttemptLogMetaPure,
   buildResponsePreview,
   createAttemptState,
   extractProviderErrorMessage,
@@ -1676,20 +1677,19 @@ ${userMessage}
       extra?: Record<string, unknown>;
     }
   ): Record<string, unknown> {
-    return {
-      requestKind: context,
-      providerProfileId: this.providerProfile.id,
-      parserFamily: getParserFamily(this.providerProfile),
+    return buildAttemptLogMetaPure({
+      context,
       attemptMode,
-      endpointPath: getSafeEndpointPath(this.normalizedBaseUrl),
+      providerProfile: this.providerProfile,
+      normalizedBaseUrl: this.normalizedBaseUrl,
       model: this.options.model,
       usedJsonMode: options.usedJsonMode,
       usedThinkingDisabled: options.usedThinkingDisabled,
-      errorKind: options.errorKind,
       retryReason: options.retryReason,
-      ...(options.data ? buildResponsePreview(options.data) : {}),
-      ...(options.extra ?? {}),
-    };
+      errorKind: options.errorKind,
+      data: options.data,
+      extra: options.extra,
+    });
   }
 
   private logAttemptSummary(summary: {
