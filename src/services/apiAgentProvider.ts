@@ -1635,37 +1635,6 @@ ${userMessage}
     );
   }
 
-  private logProviderPayloadError(
-    data: unknown,
-    context: ChatCompletionRequestKind,
-    providerError: string,
-    meta?: {
-      usedJsonMode?: boolean;
-      willRetryWithoutJsonMode?: boolean;
-      usedThinkingDisabled?: boolean;
-      stream?: boolean;
-      retryReason?: ChatCompletionRetryReason;
-    }
-  ): void {
-    console.debug(
-      `[ApiAgentProvider:${context}] 检测到 provider error payload，准备回退规则版。`,
-      this.buildAttemptLogMeta(
-        context,
-        meta?.stream ? "stream_plain" : meta?.usedJsonMode ? "non_stream_json" : "non_stream_plain",
-        {
-          usedJsonMode: meta?.usedJsonMode ?? true,
-          usedThinkingDisabled: meta?.usedThinkingDisabled ?? false,
-          retryReason: meta?.retryReason,
-          errorKind: "provider_error",
-          data,
-          extra: {
-            willRetryWithoutJsonMode: meta?.willRetryWithoutJsonMode ?? false,
-            providerError,
-          },
-        }
-      )
-    );
-  }
 
   private buildChatCompletionBody(
     messages: Array<{ role: string; content: string }>,
