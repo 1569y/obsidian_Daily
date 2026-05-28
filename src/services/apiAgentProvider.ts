@@ -35,8 +35,12 @@ import {
   isAbortError,
   isReasoningOnlyStreamPayload,
   isQuotaOrRateLimitError,
+  logNullChoicesPayloadIfNeeded,
+  logProviderPayloadError,
   looksLikeProviderErrorText,
   normalizeChatCompletionsEndpoint,
+  parseSseContent,
+  parseStreamResponsePayload,
   safeSerializeForLog,
   shouldTryStreamFallback,
   truncateForLog,
@@ -772,13 +776,19 @@ ${userMessage}
       const firstProviderError = extractProviderErrorMessage(firstData);
       if (firstProviderError) {
         this.pushAttemptError(attemptState, "provider_error");
-        this.logProviderPayloadError(firstData, context, firstProviderError, {
-          usedJsonMode: true,
-          willRetryWithoutJsonMode: false,
-          usedThinkingDisabled: firstAttempt.usedThinkingDisabled,
-          stream: false,
-          retryReason: "provider_error",
-        });
+        logProviderPayloadError(
+          firstData,
+          context,
+          firstProviderError,
+          this.buildAttemptLogMeta.bind(this),
+          {
+            usedJsonMode: true,
+            willRetryWithoutJsonMode: false,
+            usedThinkingDisabled: firstAttempt.usedThinkingDisabled,
+            stream: false,
+            retryReason: "provider_error",
+          }
+        );
         return this.retryChatCompletionWithoutJsonMode(
           messages,
           temperature,
@@ -813,13 +823,18 @@ ${userMessage}
           ? formatInvalidPayloadErrorKind(invalidPayloadKind)
           : "empty_content"
       );
-      this.logNullChoicesPayloadIfNeeded(firstData, context, {
-        usedJsonMode: true,
-        willRetryWithoutJsonMode: true,
-        usedThinkingDisabled: firstAttempt.usedThinkingDisabled,
-        stream: false,
-        retryReason: invalidPayloadKind ? "invalid_payload" : "empty_content",
-      });
+      logNullChoicesPayloadIfNeeded(
+        firstData,
+        context,
+        this.buildAttemptLogMeta.bind(this),
+        {
+          usedJsonMode: true,
+          willRetryWithoutJsonMode: true,
+          usedThinkingDisabled: firstAttempt.usedThinkingDisabled,
+          stream: false,
+          retryReason: invalidPayloadKind ? "invalid_payload" : "empty_content",
+        }
+      );
 
       console.debug(
         `[ApiAgentProvider:${context}] JSON mode 返回 200 但未提取到内容，尝试去掉 response_format 重试。`,
@@ -933,13 +948,19 @@ ${userMessage}
     const retryProviderError = extractProviderErrorMessage(retryData);
     if (retryProviderError) {
       this.pushAttemptError(attemptState, "provider_error");
-      this.logProviderPayloadError(retryData, context, retryProviderError, {
-        usedJsonMode: false,
-        willRetryWithoutJsonMode: false,
-        usedThinkingDisabled: retryAttempt.usedThinkingDisabled,
-        stream: false,
-        retryReason,
-      });
+      logProviderPayloadError(
+        retryData,
+        context,
+        retryProviderError,
+        this.buildAttemptLogMeta.bind(this),
+        {
+          usedJsonMode: false,
+          willRetryWithoutJsonMode: false,
+          usedThinkingDisabled: retryAttempt.usedThinkingDisabled,
+          stream: false,
+          retryReason,
+        }
+      );
       if (shouldTryStreamFallback(this.providerProfile, "provider_error")) {
         return this.retryChatCompletionWithStream(
           messages,
@@ -967,13 +988,18 @@ ${userMessage}
           ? formatInvalidPayloadErrorKind(invalidPayloadKind)
           : "empty_content"
       );
-      this.logNullChoicesPayloadIfNeeded(retryData, context, {
-        usedJsonMode: false,
-        willRetryWithoutJsonMode: false,
-        usedThinkingDisabled: retryAttempt.usedThinkingDisabled,
-        stream: false,
-        retryReason: invalidPayloadKind ? "invalid_payload" : retryReason,
-      });
+      logNullChoicesPayloadIfNeeded(
+        retryData,
+        context,
+        this.buildAttemptLogMeta.bind(this),
+        {
+          usedJsonMode: false,
+          willRetryWithoutJsonMode: false,
+          usedThinkingDisabled: retryAttempt.usedThinkingDisabled,
+          stream: false,
+          retryReason: invalidPayloadKind ? "invalid_payload" : retryReason,
+        }
+      );
 
       return this.retryChatCompletionWithStream(
         messages,
@@ -1092,13 +1118,19 @@ ${userMessage}
     const streamProviderError = extractProviderErrorMessage(streamData);
     if (streamProviderError) {
       this.pushAttemptError(attemptState, "provider_error");
-      this.logProviderPayloadError(streamData, context, streamProviderError, {
-        usedJsonMode: false,
-        willRetryWithoutJsonMode: false,
-        usedThinkingDisabled: streamAttempt.usedThinkingDisabled,
-        stream: true,
-        retryReason,
-      });
+      logProviderPayloadError(
+        streamData,
+        context,
+        streamProviderError,
+        this.buildAttemptLogMeta.bind(this),
+        {
+          usedJsonMode: false,
+          willRetryWithoutJsonMode: false,
+          usedThinkingDisabled: streamAttempt.usedThinkingDisabled,
+          stream: true,
+          retryReason,
+        }
+      );
       throw this.attachAttemptSummary(
         new Error(`API stream 返回错误内容: ${streamProviderError}`),
         attemptState
@@ -1181,7 +1213,7 @@ ${userMessage}
 
     try {
       const data = options.stream
-        ? this.parseStreamResponsePayload(rawText)
+        ? parseStreamResponsePayload(rawText)
         : rawText.trim().length > 0
           ? (JSON.parse(rawText) as unknown)
           : {};
@@ -1337,7 +1369,13 @@ ${userMessage}
 
     const providerError = extractProviderErrorMessage(data);
     if (providerError) {
-      this.logProviderPayloadError(data, context, providerError, meta);
+      logProviderPayloadError(
+        data,
+        context,
+        providerError,
+        this.buildAttemptLogMeta.bind(this),
+        meta
+      );
       throw this.attachAttemptSummary(
         new Error(`provider error from API response: ${providerError}`),
         attemptState
@@ -1345,7 +1383,12 @@ ${userMessage}
     }
 
     const preview = buildResponsePreview(data);
-    this.logNullChoicesPayloadIfNeeded(data, context, meta);
+    logNullChoicesPayloadIfNeeded(
+      data,
+      context,
+      this.buildAttemptLogMeta.bind(this),
+      meta
+    );
 
     console.error(
       `[ApiAgentProvider:${context}] 未提取到可解析内容，准备回退规则版。`,
@@ -1618,103 +1661,6 @@ ${userMessage}
           extra: {
             willRetryWithoutJsonMode: meta?.willRetryWithoutJsonMode ?? false,
             providerError,
-          },
-        }
-      )
-    );
-  }
-
-  private parseStreamResponsePayload(rawText: string): unknown {
-    const { content, reasoningOnly } = this.parseSseContent(rawText);
-    if (!content) {
-      return {
-        choices: null,
-        stream: true,
-        reasoningOnly,
-        rawPreview: truncateForLog(rawText),
-      };
-    }
-
-    return {
-      choices: [
-        {
-          message: {
-            content,
-          },
-        },
-      ],
-      stream: true,
-      reasoningOnly,
-    };
-  }
-
-  private parseSseContent(rawText: string): { content: string; reasoningOnly: boolean } {
-    const lines = rawText.split(/\r?\n/);
-    let finalContent = "";
-    let sawReasoning = false;
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith("data:")) {
-        continue;
-      }
-
-      const payload = trimmed.slice(5).trim();
-      if (!payload || payload === "[DONE]") {
-        continue;
-      }
-
-      try {
-        const chunk = JSON.parse(payload) as Record<string, unknown>;
-        const parsedChunk = parseOpenAIChatStreamChunk(chunk);
-
-        if (parsedChunk.contentDelta.trim().length > 0) {
-          finalContent += parsedChunk.contentDelta;
-        }
-
-        if (parsedChunk.reasoningDelta.trim().length > 0) {
-          sawReasoning = true;
-        }
-      } catch {
-        continue;
-      }
-    }
-
-    const trimmedContent = finalContent.trim();
-    return {
-      content: trimmedContent,
-      reasoningOnly: sawReasoning && trimmedContent.length === 0,
-    };
-  }
-
-  private logNullChoicesPayloadIfNeeded(
-    data: unknown,
-    context: ChatCompletionRequestKind,
-    meta?: {
-      usedJsonMode?: boolean;
-      willRetryWithoutJsonMode?: boolean;
-      usedThinkingDisabled?: boolean;
-      stream?: boolean;
-      retryReason?: ChatCompletionRetryReason;
-    }
-  ): void {
-    if (!hasNullChoicesPayload(data)) {
-      return;
-    }
-
-    console.debug(
-      `[ApiAgentProvider:${context}] provider returned choices:null; this is an invalid/empty chat completion payload, not a parser miss.`,
-      this.buildAttemptLogMeta(
-        context,
-        meta?.stream ? "stream_plain" : meta?.usedJsonMode ? "non_stream_json" : "non_stream_plain",
-        {
-          usedJsonMode: meta?.usedJsonMode ?? true,
-          usedThinkingDisabled: meta?.usedThinkingDisabled ?? false,
-          retryReason: meta?.retryReason,
-          errorKind: "invalid_payload",
-          extra: {
-            invalidPayloadMessage:
-              "invalid OpenAI-compatible payload: choices is null",
           },
         }
       )
