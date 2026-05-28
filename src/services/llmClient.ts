@@ -43,6 +43,19 @@ type BuildAttemptLogMeta<TContext extends string = string> = (
   options: BuildAttemptLogMetaOptions
 ) => Record<string, unknown>;
 
+export interface AttemptState {
+  errorTrail: string[];
+  reasoningOnly: boolean;
+}
+
+export type AttemptErrorKind =
+  | "http_error"
+  | "provider_error"
+  | "empty_content"
+  | "invalid_payload"
+  | "quota_or_rate_limit"
+  | `invalid_payload:${InvalidPayloadKind}`;
+
 export function normalizeChatCompletionsEndpoint(baseUrl: string): string {
   const trimmed = baseUrl.trim();
   if (!trimmed) {
@@ -203,6 +216,45 @@ export function formatInvalidPayloadErrorKind(
   kind: InvalidPayloadKind
 ): `invalid_payload:${InvalidPayloadKind}` {
   return `invalid_payload:${kind}`;
+}
+
+export function createAttemptState(): AttemptState {
+  return {
+    errorTrail: [],
+    reasoningOnly: false,
+  };
+}
+
+export function pushAttemptError(
+  attemptState: AttemptState,
+  errorKind: AttemptErrorKind
+): void {
+  attemptState.errorTrail.push(errorKind);
+}
+
+export function attachAttemptSummary(
+  error: Error,
+  attemptState?: AttemptState
+): Error {
+  if (!attemptState) {
+    return error;
+  }
+
+  const enrichedError = error as Error & {
+    moodNestAttemptSummary?: {
+      retryCount: number;
+      errorTrail: string[];
+      reasoningOnly: boolean;
+    };
+  };
+
+  enrichedError.moodNestAttemptSummary = {
+    retryCount: attemptState.errorTrail.length,
+    errorTrail: [...attemptState.errorTrail],
+    reasoningOnly: attemptState.reasoningOnly,
+  };
+
+  return enrichedError;
 }
 
 export function extractTextFromContentValue(value: unknown, depth = 0): string {

@@ -24,7 +24,9 @@ import {
   type InvalidPayloadKind,
 } from "./llmResponseParsers";
 import {
+  attachAttemptSummary,
   buildResponsePreview,
+  createAttemptState,
   extractProviderErrorMessage,
   formatInvalidPayloadErrorKind,
   getSafeEndpointPath,
@@ -41,9 +43,12 @@ import {
   normalizeChatCompletionsEndpoint,
   parseSseContent,
   parseStreamResponsePayload,
+  pushAttemptError,
   safeSerializeForLog,
   shouldTryStreamFallback,
   truncateForLog,
+  type AttemptErrorKind,
+  type AttemptState,
   warnIfEndpointLooksIncomplete,
 } from "./llmClient";
 import {
@@ -107,19 +112,6 @@ interface ChatCompletionAttemptResult {
   usedThinkingDisabled: boolean;
   stream: boolean;
 }
-
-interface AttemptState {
-  errorTrail: string[];
-  reasoningOnly: boolean;
-}
-
-type AttemptErrorKind =
-  | "http_error"
-  | "provider_error"
-  | "empty_content"
-  | "invalid_payload"
-  | "quota_or_rate_limit"
-  | `invalid_payload:${InvalidPayloadKind}`;
 
 export class ApiAgentProvider {
   private static readonly ANALYZE_TIMEOUT_MS = 30000;
@@ -711,7 +703,7 @@ ${userMessage}
       this.options.model
     );
 
-    const attemptState = this.createAttemptState();
+    const attemptState = createAttemptState();
     const preferDisableThinking = this.shouldDisableThinking();
     const canUseJsonMode = this.providerProfile.supportsJsonObject;
 
@@ -730,8 +722,8 @@ ${userMessage}
 
       if (!firstAttempt.ok) {
         if (firstAttempt.quotaOrRateLimit) {
-          this.pushAttemptError(attemptState, "quota_or_rate_limit");
-          throw this.attachAttemptSummary(
+          pushAttemptError(attemptState, "quota_or_rate_limit");
+          throw attachAttemptSummary(
             new Error(
               `API 请求失败: ${firstAttempt.status} - ${firstAttempt.errorText ?? ""}`
             ),
@@ -740,7 +732,7 @@ ${userMessage}
         }
 
         if (firstAttempt.status === 400) {
-          this.pushAttemptError(attemptState, "http_error");
+          pushAttemptError(attemptState, "http_error");
           console.debug(
             `[ApiAgentProvider:${context}] JSON mode 请求返回 400，尝试去掉 response_format 重试。`,
             this.buildAttemptLogMeta(context, "non_stream_json", {
@@ -775,7 +767,7 @@ ${userMessage}
       const firstData = firstAttempt.data;
       const firstProviderError = extractProviderErrorMessage(firstData);
       if (firstProviderError) {
-        this.pushAttemptError(attemptState, "provider_error");
+        pushAttemptError(attemptState, "provider_error");
         logProviderPayloadError(
           firstData,
           context,
@@ -818,7 +810,7 @@ ${userMessage}
       }
 
       const invalidPayloadKind = getInvalidPayloadKind(firstData, this.providerProfile);
-      this.pushAttemptError(
+      pushAttemptError(
         attemptState,
         invalidPayloadKind
           ? formatInvalidPayloadErrorKind(invalidPayloadKind)
@@ -900,8 +892,8 @@ ${userMessage}
 
     if (!retryAttempt.ok) {
       if (retryAttempt.quotaOrRateLimit) {
-        this.pushAttemptError(attemptState, "quota_or_rate_limit");
-        throw this.attachAttemptSummary(
+        pushAttemptError(attemptState, "quota_or_rate_limit");
+        throw attachAttemptSummary(
           new Error(
             `API 请求失败: ${retryAttempt.status} - ${retryAttempt.errorText ?? ""}`
           ),
@@ -910,7 +902,7 @@ ${userMessage}
       }
 
       if (retryAttempt.status === 400 && disableThinking) {
-        this.pushAttemptError(attemptState, "http_error");
+        pushAttemptError(attemptState, "http_error");
         console.debug(
           `[ApiAgentProvider:${context}] 去掉 response_format 后仍返回 400，尝试去掉 thinking 参数重试。`,
           this.buildAttemptLogMeta(context, "non_stream_plain", {
@@ -938,7 +930,7 @@ ${userMessage}
         );
       }
 
-      throw this.attachAttemptSummary(
+      throw attachAttemptSummary(
         new Error(
           `API 请求失败: ${retryAttempt.status} - ${retryAttempt.errorText ?? ""}`
         ),
@@ -949,7 +941,7 @@ ${userMessage}
     const retryData = retryAttempt.data;
     const retryProviderError = extractProviderErrorMessage(retryData);
     if (retryProviderError) {
-      this.pushAttemptError(attemptState, "provider_error");
+      pushAttemptError(attemptState, "provider_error");
       logProviderPayloadError(
         retryData,
         context,
@@ -976,7 +968,7 @@ ${userMessage}
           attemptState
         );
       }
-      throw this.attachAttemptSummary(
+      throw attachAttemptSummary(
         new Error(`API 返回错误内容: ${retryProviderError}`),
         attemptState
       );
@@ -985,7 +977,7 @@ ${userMessage}
     const retryContent = this.getMessageContent(retryData);
     const invalidPayloadKind = getInvalidPayloadKind(retryData, this.providerProfile);
     if (retryContent.trim().length === 0 && shouldTryStreamFallback(this.providerProfile, invalidPayloadKind ? "invalid_payload" : "empty_content")) {
-      this.pushAttemptError(
+      pushAttemptError(
         attemptState,
         invalidPayloadKind
           ? formatInvalidPayloadErrorKind(invalidPayloadKind)
@@ -1073,8 +1065,8 @@ ${userMessage}
 
     if (!streamAttempt.ok) {
       if (streamAttempt.quotaOrRateLimit) {
-        this.pushAttemptError(attemptState, "quota_or_rate_limit");
-        throw this.attachAttemptSummary(
+        pushAttemptError(attemptState, "quota_or_rate_limit");
+        throw attachAttemptSummary(
           new Error(
             `API stream 请求失败: ${streamAttempt.status} - ${streamAttempt.errorText ?? ""}`
           ),
@@ -1083,7 +1075,7 @@ ${userMessage}
       }
 
       if (streamAttempt.status === 400 && disableThinking) {
-        this.pushAttemptError(attemptState, "http_error");
+        pushAttemptError(attemptState, "http_error");
         console.debug(
           `[ApiAgentProvider:${context}] stream fallback 返回 400，尝试去掉 thinking 参数后再次拉取 stream。`,
           this.buildAttemptLogMeta(context, "stream_plain", {
@@ -1110,7 +1102,7 @@ ${userMessage}
         );
       }
 
-      throw this.attachAttemptSummary(
+      throw attachAttemptSummary(
         new Error(
           `API stream 请求失败: ${streamAttempt.status} - ${streamAttempt.errorText ?? ""}`
         ),
@@ -1121,7 +1113,7 @@ ${userMessage}
     const streamData = streamAttempt.data;
     const streamProviderError = extractProviderErrorMessage(streamData);
     if (streamProviderError) {
-      this.pushAttemptError(attemptState, "provider_error");
+      pushAttemptError(attemptState, "provider_error");
       logProviderPayloadError(
         streamData,
         context,
@@ -1136,7 +1128,7 @@ ${userMessage}
           retryReason,
         }
       );
-      throw this.attachAttemptSummary(
+      throw attachAttemptSummary(
         new Error(`API stream 返回错误内容: ${streamProviderError}`),
         attemptState
       );
@@ -1145,7 +1137,7 @@ ${userMessage}
     const streamContent = this.getMessageContent(streamData);
     attemptState.reasoningOnly = isReasoningOnlyStreamPayload(streamData);
     if (streamContent.trim().length === 0) {
-      this.pushAttemptError(attemptState, "empty_content");
+      pushAttemptError(attemptState, "empty_content");
     }
     this.assertNonEmptyContent(streamContent, streamData, context, {
       usedJsonMode: false,
@@ -1382,7 +1374,7 @@ ${userMessage}
           this.buildAttemptLogMeta(context, attemptMode, options),
         meta
       );
-      throw this.attachAttemptSummary(
+      throw attachAttemptSummary(
         new Error(`provider error from API response: ${providerError}`),
         attemptState
       );
@@ -1416,7 +1408,7 @@ ${userMessage}
     );
     console.debug("[MoodNest API empty responsePreview]", preview.responsePreview);
 
-    throw this.attachAttemptSummary(
+    throw attachAttemptSummary(
       new Error("empty content from API response"),
       attemptState
     );
@@ -1698,42 +1690,6 @@ ${userMessage}
       ...(options.data ? buildResponsePreview(options.data) : {}),
       ...(options.extra ?? {}),
     };
-  }
-
-  private createAttemptState(): AttemptState {
-    return {
-      errorTrail: [],
-      reasoningOnly: false,
-    };
-  }
-
-  private pushAttemptError(
-    attemptState: AttemptState,
-    errorKind: AttemptErrorKind
-  ): void {
-    attemptState.errorTrail.push(errorKind);
-  }
-
-  private attachAttemptSummary(error: Error, attemptState?: AttemptState): Error {
-    if (!attemptState) {
-      return error;
-    }
-
-    const enrichedError = error as Error & {
-      moodNestAttemptSummary?: {
-        retryCount: number;
-        errorTrail: string[];
-        reasoningOnly: boolean;
-      };
-    };
-
-    enrichedError.moodNestAttemptSummary = {
-      retryCount: attemptState.errorTrail.length,
-      errorTrail: [...attemptState.errorTrail],
-      reasoningOnly: attemptState.reasoningOnly,
-    };
-
-    return enrichedError;
   }
 
   private logAttemptSummary(summary: {
