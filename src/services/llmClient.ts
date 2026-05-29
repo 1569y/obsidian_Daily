@@ -46,6 +46,8 @@ export interface LLMAttemptLogInput {
   logPrefix: string;
 }
 
+export type LLMRetryContext<TContext extends string> = TContext;
+
 export interface LLMFetchAttemptOptions {
   jsonMode: boolean;
   disableThinking: boolean;
@@ -71,7 +73,7 @@ export interface LLMFetchAttemptResult {
   stream: boolean;
 }
 
-interface PayloadLogMetaOptions {
+export interface PayloadLogMetaOptions {
   usedJsonMode?: boolean;
   willRetryWithoutJsonMode?: boolean;
   usedThinkingDisabled?: boolean;
@@ -79,7 +81,7 @@ interface PayloadLogMetaOptions {
   retryReason?: LLMRetryReason;
 }
 
-interface BuildAttemptLogMetaOptions {
+export interface BuildAttemptLogMetaOptions {
   usedJsonMode: boolean;
   usedThinkingDisabled: boolean;
   retryReason?: LLMRetryReason;
@@ -102,7 +104,7 @@ export interface BuildAttemptLogMetaInput<TContext extends string> {
   extra?: Record<string, unknown>;
 }
 
-type BuildAttemptLogMeta<TContext extends string = string> = (
+export type BuildAttemptLogMeta<TContext extends string = string> = (
   context: TContext,
   attemptMode: LLMAttemptMode,
   options: BuildAttemptLogMetaOptions
@@ -120,6 +122,56 @@ export type AttemptErrorKind =
   | "invalid_payload"
   | "quota_or_rate_limit"
   | `invalid_payload:${InvalidPayloadKind}`;
+
+export type LLMRetryFallbackErrorKind =
+  | "empty_content"
+  | "invalid_payload"
+  | "provider_error";
+
+export interface LLMRetryDependencies<TContext extends string> {
+  fetchChatCompletionAttempt: (
+    messages: Array<{ role: string; content: string }>,
+    temperature: number,
+    maxTokens: number,
+    signal: AbortSignal,
+    options: LLMFetchAttemptOptions
+  ) => Promise<LLMFetchAttemptResult>;
+  extractProviderErrorMessage: (data: unknown) => string;
+  getInvalidPayloadKind: (data: unknown) => InvalidPayloadKind | null;
+  shouldTryStreamFallback: (
+    errorKind: LLMRetryFallbackErrorKind
+  ) => boolean;
+  logProviderPayloadError: (
+    data: unknown,
+    context: LLMRetryContext<TContext>,
+    providerError: string,
+    buildAttemptLogMeta: BuildAttemptLogMeta<TContext>,
+    meta?: PayloadLogMetaOptions
+  ) => void;
+  logNullChoicesPayloadIfNeeded: (
+    data: unknown,
+    context: LLMRetryContext<TContext>,
+    buildAttemptLogMeta: BuildAttemptLogMeta<TContext>,
+    meta?: PayloadLogMetaOptions
+  ) => void;
+  assertNonEmptyContent: (
+    content: string,
+    data: unknown,
+    context: LLMRetryContext<TContext>,
+    meta?: PayloadLogMetaOptions,
+    attemptState?: AttemptState
+  ) => void;
+  getMessageContent: (data: unknown) => string;
+  buildAttemptLogMeta: BuildAttemptLogMeta<TContext>;
+  pushAttemptError: (
+    attemptState: AttemptState,
+    errorKind: AttemptErrorKind
+  ) => void;
+  attachAttemptSummary: (
+    error: Error,
+    attemptState?: AttemptState
+  ) => Error;
+}
 
 export function normalizeChatCompletionsEndpoint(baseUrl: string): string {
   const trimmed = baseUrl.trim();
