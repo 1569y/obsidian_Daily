@@ -6,6 +6,7 @@ import { ArchiveService } from "./src/services/archiveService";
 import { AgentService } from "./src/services/agentService";
 import { AsrService } from "./src/services/asrService";
 import { EmotionLogModal } from "./src/ui/modals/EmotionLogModal";
+import { registerDayNestManualTestCommand } from "./src/daynest/commands/daynestManualTestCommand";
 
 export default class MoodNestPlugin extends Plugin {
   settings!: MoodNestSettings;
@@ -24,6 +25,7 @@ export default class MoodNestPlugin extends Plugin {
 
     this.addSettingTab(new MoodNestSettingTab(this.app, this));
     registerCommands(this);
+    registerDayNestManualTestCommand(this);
 
     this.addRibbonIcon("heart", "新建情绪记录", () => {
       new EmotionLogModal(this.app, this).open();
