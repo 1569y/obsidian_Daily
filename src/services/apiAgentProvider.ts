@@ -46,6 +46,7 @@ import {
   parseSseContent,
   parseStreamResponsePayload,
   pushAttemptError,
+  retryChatCompletionWithoutJsonMode as retryChatCompletionWithoutJsonModePure,
   safeSerializeForLog,
   shouldTryStreamFallback,
   logAttemptSummary as logAttemptSummaryPure,
@@ -882,6 +883,104 @@ ${userMessage}
     disableThinking: boolean,
     attemptState: AttemptState
   ): Promise<ChatCompletionRequestResult> {
+    return retryChatCompletionWithoutJsonModePure(
+      {
+        messages,
+        temperature,
+        maxTokens,
+        signal,
+        context,
+        retryReason,
+        disableThinking,
+        attemptState,
+      },
+      {
+        fetchChatCompletionAttempt: (
+          messages,
+          temperature,
+          maxTokens,
+          signal,
+          options
+        ) =>
+          this.fetchChatCompletionAttempt(
+            messages,
+            temperature,
+            maxTokens,
+            signal,
+            options
+          ),
+        extractProviderErrorMessage: (data) =>
+          extractProviderErrorMessage(data),
+        getInvalidPayloadKind: (data) =>
+          getInvalidPayloadKind(data, this.providerProfile),
+        shouldTryStreamFallback: (errorKind) =>
+          shouldTryStreamFallback(this.providerProfile, errorKind),
+        logProviderPayloadError: (
+          data,
+          context,
+          providerError,
+          buildAttemptLogMeta,
+          meta
+        ) =>
+          logProviderPayloadError(
+            data,
+            context,
+            providerError,
+            buildAttemptLogMeta,
+            meta
+          ),
+        logNullChoicesPayloadIfNeeded: (
+          data,
+          context,
+          buildAttemptLogMeta,
+          meta
+        ) =>
+          logNullChoicesPayloadIfNeeded(
+            data,
+            context,
+            buildAttemptLogMeta,
+            meta
+          ),
+        assertNonEmptyContent: (
+          content,
+          data,
+          context,
+          meta,
+          attemptState
+        ) =>
+          this.assertNonEmptyContent(content, data, context, meta, attemptState),
+        getMessageContent: (data) => this.getMessageContent(data),
+        buildAttemptLogMeta: (context, attemptMode, options) =>
+          this.buildAttemptLogMeta(context, attemptMode, options),
+        pushAttemptError: (attemptState, errorKind) =>
+          pushAttemptError(attemptState, errorKind),
+        attachAttemptSummary: (error, attemptState) =>
+          attachAttemptSummary(error, attemptState),
+        retryChatCompletionWithStream: (
+          messages,
+          temperature,
+          maxTokens,
+          signal,
+          context,
+          disableThinking,
+          retryReason,
+          attemptState
+        ) =>
+          this.retryChatCompletionWithStream(
+            messages,
+            temperature,
+            maxTokens,
+            signal,
+            context,
+            disableThinking,
+            retryReason,
+            attemptState
+          ),
+      }
+    );
+  }
+
+  /*
     const retryAttempt = await this.fetchChatCompletionAttempt(
       messages,
       temperature,
@@ -1034,6 +1133,7 @@ ${userMessage}
       retryReason,
     };
   }
+  */
 
   private async retryChatCompletionWithStream(
     messages: Array<{ role: string; content: string }>,
