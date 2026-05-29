@@ -161,6 +161,9 @@ export interface LLMRetryWithoutJsonModeInput<TContext extends string> {
   attemptState: AttemptState;
 }
 
+export type LLMRetryWithStreamInput<TContext extends string> =
+  LLMRetryWithoutJsonModeInput<TContext>;
+
 export interface LLMRetryDependencies<TContext extends string> {
   fetchChatCompletionAttempt: (
     messages: Array<{ role: string; content: string }>,
@@ -214,6 +217,21 @@ export interface LLMRetryDependencies<TContext extends string> {
     retryReason: LLMRetryReason,
     attemptState: AttemptState
   ) => Promise<LLMRetryRequestResult>;
+}
+
+export interface LLMRetryWithStreamDependencies<TContext extends string>
+  extends Pick<
+    LLMRetryDependencies<TContext>,
+    | "fetchChatCompletionAttempt"
+    | "extractProviderErrorMessage"
+    | "logProviderPayloadError"
+    | "assertNonEmptyContent"
+    | "getMessageContent"
+    | "buildAttemptLogMeta"
+    | "pushAttemptError"
+    | "attachAttemptSummary"
+  > {
+  isReasoningOnlyStreamPayload: (data: unknown) => boolean;
 }
 
 export function normalizeChatCompletionsEndpoint(baseUrl: string): string {
@@ -614,6 +632,144 @@ export async function retryChatCompletionWithoutJsonMode<TContext extends string
     errorTrail: [...input.attemptState.errorTrail],
     reasoningOnly: input.attemptState.reasoningOnly,
     retryReason: input.retryReason,
+  };
+}
+
+export async function retryChatCompletionWithStream<TContext extends string>(
+  input: LLMRetryWithStreamInput<TContext>,
+  dependencies: LLMRetryWithStreamDependencies<TContext>
+): Promise<LLMRetryRequestResult> {
+  console.debug(
+    `[ApiAgentProvider:${input.context}] non-stream fallback retrying with stream.`,
+    dependencies.buildAttemptLogMeta(input.context, "stream_plain", {
+      usedJsonMode: false,
+      usedThinkingDisabled: input.disableThinking,
+      retryReason: input.retryReason,
+      errorKind:
+        input.retryReason === "provider_error"
+          ? "provider_error"
+          : input.retryReason === "invalid_payload"
+            ? "invalid_payload"
+            : "empty_content",
+    })
+  );
+
+  const streamAttempt = await dependencies.fetchChatCompletionAttempt(
+    input.messages,
+    input.temperature,
+    input.maxTokens,
+    input.signal,
+    {
+      jsonMode: false,
+      disableThinking: input.disableThinking,
+      stream: true,
+    }
+  );
+
+  if (!streamAttempt.ok) {
+    if (streamAttempt.quotaOrRateLimit) {
+      dependencies.pushAttemptError(input.attemptState, "quota_or_rate_limit");
+      throw dependencies.attachAttemptSummary(
+        new Error(
+          `API stream 璇锋眰澶辫触: ${streamAttempt.status} - ${streamAttempt.errorText ?? ""}`
+        ),
+        input.attemptState
+      );
+    }
+
+    if (streamAttempt.status === 400 && input.disableThinking) {
+      dependencies.pushAttemptError(input.attemptState, "http_error");
+      console.debug(
+        `[ApiAgentProvider:${input.context}] stream fallback returned 400; retrying without thinking parameter.`,
+        dependencies.buildAttemptLogMeta(input.context, "stream_plain", {
+          usedJsonMode: false,
+          usedThinkingDisabled: true,
+          retryReason: "thinking_400",
+          errorKind: "http_error",
+          extra: {
+            status: streamAttempt.status,
+            errorPreview: truncateForLog(streamAttempt.errorText ?? ""),
+          },
+        })
+      );
+
+      return retryChatCompletionWithStream(
+        {
+          ...input,
+          disableThinking: false,
+          retryReason: "thinking_400",
+        },
+        dependencies
+      );
+    }
+
+    throw dependencies.attachAttemptSummary(
+      new Error(
+        `API stream 璇锋眰澶辫触: ${streamAttempt.status} - ${streamAttempt.errorText ?? ""}`
+      ),
+      input.attemptState
+    );
+  }
+
+  const streamData = streamAttempt.data;
+  const streamProviderError =
+    streamData === undefined
+      ? ""
+      : dependencies.extractProviderErrorMessage(streamData);
+  if (streamProviderError) {
+    dependencies.pushAttemptError(input.attemptState, "provider_error");
+    dependencies.logProviderPayloadError(
+      streamData,
+      input.context,
+      streamProviderError,
+      dependencies.buildAttemptLogMeta,
+      {
+        usedJsonMode: false,
+        willRetryWithoutJsonMode: false,
+        usedThinkingDisabled: streamAttempt.usedThinkingDisabled,
+        stream: true,
+        retryReason: input.retryReason,
+      }
+    );
+    throw dependencies.attachAttemptSummary(
+      new Error(`API stream 杩斿洖閿欒鍐呭: ${streamProviderError}`),
+      input.attemptState
+    );
+  }
+
+  const streamContent = dependencies.getMessageContent(streamData);
+  input.attemptState.reasoningOnly =
+    dependencies.isReasoningOnlyStreamPayload(streamData);
+  if (streamContent.trim().length === 0) {
+    dependencies.pushAttemptError(input.attemptState, "empty_content");
+  }
+
+  dependencies.assertNonEmptyContent(
+    streamContent,
+    streamData,
+    input.context,
+    {
+      usedJsonMode: false,
+      willRetryWithoutJsonMode: false,
+      usedThinkingDisabled: streamAttempt.usedThinkingDisabled,
+      stream: true,
+      retryReason: "stream_empty_content",
+    },
+    input.attemptState
+  );
+
+  return {
+    data: streamData,
+    content: streamContent,
+    usedJsonMode: false,
+    retriedWithoutJsonMode: true,
+    usedThinkingDisabled: streamAttempt.usedThinkingDisabled,
+    usedStreamFallback: true,
+    finalAttemptMode: "stream_plain",
+    retryCount: input.attemptState.errorTrail.length,
+    errorTrail: [...input.attemptState.errorTrail],
+    reasoningOnly: input.attemptState.reasoningOnly,
+    retryReason: "stream_empty_content",
   };
 }
 

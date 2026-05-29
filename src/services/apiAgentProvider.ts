@@ -46,6 +46,7 @@ import {
   parseSseContent,
   parseStreamResponsePayload,
   pushAttemptError,
+  retryChatCompletionWithStream as retryChatCompletionWithStreamPure,
   retryChatCompletionWithoutJsonMode as retryChatCompletionWithoutJsonModePure,
   safeSerializeForLog,
   shouldTryStreamFallback,
@@ -990,6 +991,68 @@ ${userMessage}
     retryReason: ChatCompletionRetryReason,
     attemptState: AttemptState
   ): Promise<ChatCompletionRequestResult> {
+    return retryChatCompletionWithStreamPure(
+      {
+        messages,
+        temperature,
+        maxTokens,
+        signal,
+        context,
+        retryReason,
+        disableThinking,
+        attemptState,
+      },
+      {
+        fetchChatCompletionAttempt: (
+          messages,
+          temperature,
+          maxTokens,
+          signal,
+          options
+        ) =>
+          this.fetchChatCompletionAttempt(
+            messages,
+            temperature,
+            maxTokens,
+            signal,
+            options
+          ),
+        extractProviderErrorMessage: (data) =>
+          extractProviderErrorMessage(data),
+        logProviderPayloadError: (
+          data,
+          context,
+          providerError,
+          buildAttemptLogMeta,
+          meta
+        ) =>
+          logProviderPayloadError(
+            data,
+            context,
+            providerError,
+            buildAttemptLogMeta,
+            meta
+          ),
+        assertNonEmptyContent: (
+          content,
+          data,
+          context,
+          meta,
+          attemptState
+        ) =>
+          this.assertNonEmptyContent(content, data, context, meta, attemptState),
+        getMessageContent: (data) => this.getMessageContent(data),
+        buildAttemptLogMeta: (context, attemptMode, options) =>
+          this.buildAttemptLogMeta(context, attemptMode, options),
+        pushAttemptError: (attemptState, errorKind) =>
+          pushAttemptError(attemptState, errorKind),
+        attachAttemptSummary: (error, attemptState) =>
+          attachAttemptSummary(error, attemptState),
+        isReasoningOnlyStreamPayload: (data) =>
+          isReasoningOnlyStreamPayload(data),
+      }
+    );
+
     console.debug(
       `[ApiAgentProvider:${context}] non-stream 返回可重试错误，尝试 stream fallback。`,
       this.buildAttemptLogMeta(context, "stream_plain", {
