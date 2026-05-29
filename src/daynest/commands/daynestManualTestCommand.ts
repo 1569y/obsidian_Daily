@@ -7,8 +7,12 @@ import { DayNestActionExecutor } from "../core/daynestActionExecutor";
 import { DEFAULT_DAYNEST_DAILY_NOTE_SETTINGS } from "../core/daynestDailyNoteSettings";
 import { DayNestDailyNoteRepository } from "../storage/daynestDailyNoteRepository";
 
-function formatIsoDate(date: Date): string {
-  return date.toISOString().slice(0, 10);
+function formatLocalDate(date: Date): string {
+  const year = String(date.getFullYear());
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 function formatIsoDateTime(date: Date): string {
@@ -26,7 +30,7 @@ function buildSampleAppendDailyLogAction(now: Date): DayNestAppendDailyLogAction
     confirmationState: "confirmed",
     dailyLogDraft: {
       id: `daynest-daily-log-test-${now.getTime()}`,
-      date: formatIsoDate(now),
+      date: formatLocalDate(now),
       summary: "DayNest test entry",
       notes: [`Manual dev command execution at ${createdAt}`],
       createdAt,
