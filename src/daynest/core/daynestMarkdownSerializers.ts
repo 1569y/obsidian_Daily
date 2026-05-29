@@ -46,7 +46,7 @@ export function formatDayNestDateTime(dateTime: string): string {
 export function serializeTaskAsObsidianCheckbox(task: MoonTask): string {
   const checkbox = task.status === "done" ? "x" : " ";
   const dueDateSuffix = isNonEmptyString(task.dueDate)
-    ? ` 📅 ${formatDayNestDate(task.dueDate)}`
+    ? ` | due: ${formatDayNestDate(task.dueDate)}`
     : "";
 
   return `- [${checkbox}] ${escapeMarkdownText(task.title)}${dueDateSuffix}`;
@@ -137,7 +137,7 @@ export function serializeMoonTimerToMarkdown(timer: MoonTimer): string {
 }
 
 export function serializeMoonDailyLogToMarkdown(log: MoonDailyLog): string {
-  const sections: string[] = [`# DayNest Daily Log`, `date: ${formatDayNestDate(log.date)}`];
+  const sections: string[] = ["# DayNest Daily Log", `date: ${formatDayNestDate(log.date)}`];
 
   if (isNonEmptyString(log.summary)) {
     sections.push(`\n## Summary\n${escapeMarkdownText(log.summary)}`);
