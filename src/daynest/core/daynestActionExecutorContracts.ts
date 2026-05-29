@@ -1,4 +1,6 @@
 import type { DayNestAction, DayNestActionKind } from "./daynestActions";
+import type { DayNestDailyNoteSettings } from "./daynestDailyNoteSettings";
+import type { DayNestDailyNoteRepositoryContract } from "./daynestStorageContracts";
 
 export type DayNestActionExecutionStatus =
   | "applied"
@@ -16,7 +18,11 @@ export interface DayNestActionExecutionResult {
   errorMessage?: string;
 }
 
-export interface DayNestActionExecutorContext {}
+export interface DayNestActionExecutorContext {
+  dailyNoteSettings: DayNestDailyNoteSettings;
+  dailyNoteRepository: DayNestDailyNoteRepositoryContract;
+  now?: Date;
+}
 
 export interface DayNestActionExecutorContract {
   execute(
