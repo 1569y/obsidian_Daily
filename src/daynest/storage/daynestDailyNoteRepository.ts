@@ -6,18 +6,10 @@ import {
   ensureDayNestSection,
 } from "../core/daynestDailyNoteContent";
 import type { DayNestDailyNoteTarget } from "../core/daynestDailyNoteSettings";
-
-export type DayNestDailyNoteAppendStatus =
-  | "appended"
-  | "created"
-  | "missing"
-  | "invalid_target";
-
-export interface DayNestDailyNoteAppendResult {
-  status: DayNestDailyNoteAppendStatus;
-  filePath: string;
-  message?: string;
-}
+import type {
+  DayNestDailyNoteAppendResult,
+  DayNestDailyNoteRepositoryContract,
+} from "../core/daynestStorageContracts";
 
 function trimSlashes(value: string): string {
   return value.replace(/^\/+|\/+$/g, "");
@@ -34,7 +26,9 @@ function getParentFolderPath(filePath: string): string {
   return normalized.slice(0, lastSlashIndex);
 }
 
-export class DayNestDailyNoteRepository {
+export class DayNestDailyNoteRepository
+  implements DayNestDailyNoteRepositoryContract
+{
   constructor(private readonly vault: Vault) {}
 
   async appendToTarget(
