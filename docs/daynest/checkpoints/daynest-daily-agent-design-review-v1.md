@@ -1,3 +1,11 @@
+---
+status: historical-checkpoint
+scope: daynest-early-agent-planning-review
+last-reviewed-checkpoint: docs-4b-1
+supersedes: []
+superseded-by: []
+---
+
 # DayNest Daily Agent Design Review v1
 
 ## 1. Review Scope

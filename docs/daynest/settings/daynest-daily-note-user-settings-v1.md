@@ -1,3 +1,13 @@
+---
+status: partially-superseded
+scope: daynest-early-daily-note-settings
+last-reviewed-checkpoint: docs-4b-1
+supersedes: []
+superseded-by:
+  - ./daynest-daily-note-template-language-design-v1.md
+  - ../architecture/daynest-storage-projection-decision-matrix-v1.md
+---
+
 # DayNest Daily Note User Settings v1
 
 ## 1. Purpose

@@ -1,3 +1,11 @@
+---
+status: active-source-of-truth
+scope: daynest-daily-note-integration-template-safety
+last-reviewed-checkpoint: docs-4b-1
+supersedes: []
+superseded-by: []
+---
+
 # DayNest Daily Note Template And Language Design v1
 
 ## 1. Purpose

@@ -1,3 +1,11 @@
+---
+status: historical-checkpoint
+scope: daynest-early-agent-planning
+last-reviewed-checkpoint: docs-4b-1
+supersedes: []
+superseded-by: []
+---
+
 # DayNest Daily Agent Design v1
 
 ## 1. Current MoodNest Architecture Summary

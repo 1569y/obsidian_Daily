@@ -1,3 +1,11 @@
+---
+status: active-source-of-truth
+scope: daynest-data-template-analytics-architecture
+last-reviewed-checkpoint: docs-4b-1
+supersedes: []
+superseded-by: []
+---
+
 # DayNest Data, Template, And Analytics Architecture v1
 
 ## 1. Architecture Objective

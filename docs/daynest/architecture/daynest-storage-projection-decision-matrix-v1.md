@@ -1,3 +1,11 @@
+---
+status: active-supporting
+scope: daynest-mvp-engineering-decision-matrix
+last-reviewed-checkpoint: docs-4b-1
+supersedes: []
+superseded-by: []
+---
+
 # DayNest Storage And Projection Decision Matrix v1
 
 ## 1. Purpose

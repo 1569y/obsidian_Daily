@@ -1,3 +1,11 @@
+---
+status: active-source-of-truth
+scope: daynest-product-domain
+last-reviewed-checkpoint: docs-4b-1
+supersedes: []
+superseded-by: []
+---
+
 # DayNest Growth Economy And Domain Design v1
 
 ## 1. Purpose

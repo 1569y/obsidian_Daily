@@ -1,3 +1,11 @@
+---
+status: active-supporting
+scope: daynest-narrative-language
+last-reviewed-checkpoint: docs-4b-1
+supersedes: []
+superseded-by: []
+---
+
 # DayNest 叙事语言设计 v1
 
 ## 1. 目的

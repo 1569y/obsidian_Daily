@@ -1,3 +1,11 @@
+---
+status: historical-checkpoint
+scope: daynest-manual-runtime-checkpoint-design
+last-reviewed-checkpoint: docs-4b-1
+supersedes: []
+superseded-by: []
+---
+
 # DayNest Manual Test Command Design v1
 
 ## 1. Purpose
