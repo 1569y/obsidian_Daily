@@ -12,7 +12,7 @@
 
 ## Current Source-Of-Truth Documents
 
-### [moodnest-product-design-v1.md](../moodnest-product-design-v1.md)
+### [moodnest-product-design-v1.md](./product/moodnest-product-design-v1.md)
 
 Role:
 
@@ -24,7 +24,7 @@ Answers:
 - what MoodNest should prioritize
 - what product boundaries should remain stable
 
-### [dialogue-tone-guide.md](../dialogue-tone-guide.md)
+### [dialogue-tone-guide.md](./safety/dialogue-tone-guide.md)
 
 Role:
 
@@ -36,7 +36,7 @@ Answers:
 - what phrasing to avoid
 - how to preserve the support identity in conversation
 
-### [moodnest-support-strategy-map.md](../moodnest-support-strategy-map.md)
+### [moodnest-support-strategy-map.md](./safety/moodnest-support-strategy-map.md)
 
 Role:
 
@@ -48,7 +48,7 @@ Answers:
 - where risk boundaries sit
 - how support strategy should stay aligned with product identity
 
-### [moodnest-mini-eval-v1.md](../moodnest-mini-eval-v1.md)
+### [moodnest-mini-eval-v1.md](./evaluation/moodnest-mini-eval-v1.md)
 
 Role:
 
@@ -60,7 +60,7 @@ Answers:
 - what quality dimensions matter
 - how manual review should be framed
 
-### [moodnest-mini-eval-v1.json](../moodnest-mini-eval-v1.json)
+### [moodnest-mini-eval-v1.json](./evaluation/moodnest-mini-eval-v1.json)
 
 Role:
 
@@ -73,7 +73,7 @@ Answers:
 
 ## Supporting Document
 
-### [moodnest-information-architecture-v1.md](../moodnest-information-architecture-v1.md)
+### [moodnest-information-architecture-v1.md](./product/moodnest-information-architecture-v1.md)
 
 Clarification:
 
@@ -81,10 +81,10 @@ Clarification:
 
 ## Shared Architecture Support
 
-### [module-map.md](../architecture/module-map.md)
-### [startup-chain.md](../architecture/startup-chain.md)
-### [bundle-risk.md](../architecture/bundle-risk.md)
-### [safe-refactor-plan.md](../architecture/safe-refactor-plan.md)
+### [module-map.md](../shared/architecture/module-map.md)
+### [startup-chain.md](../shared/architecture/startup-chain.md)
+### [bundle-risk.md](../shared/architecture/bundle-risk.md)
+### [safe-refactor-plan.md](../shared/architecture/safe-refactor-plan.md)
 
 Clarification:
 

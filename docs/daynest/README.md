@@ -20,7 +20,7 @@
 
 ## Current Source-Of-Truth Documents
 
-### [daynest-growth-economy-domain-design-v1.md](../daynest-growth-economy-domain-design-v1.md)
+### [daynest-growth-economy-domain-design-v1.md](./product/daynest-growth-economy-domain-design-v1.md)
 
 Role:
 
@@ -32,7 +32,7 @@ Answers:
 - how tasks, habits, timers, rewards, and optional wellbeing fit together
 - what DayNest should and should not reward
 
-### [daynest-data-template-analytics-architecture-v1.md](../daynest-data-template-analytics-architecture-v1.md)
+### [daynest-data-template-analytics-architecture-v1.md](./architecture/daynest-data-template-analytics-architecture-v1.md)
 
 Role:
 
@@ -46,7 +46,7 @@ Answers:
 - how analytics should be derived
 - how caches are treated
 
-### [daynest-daily-note-template-language-design-v1.md](../daynest-daily-note-template-language-design-v1.md)
+### [daynest-daily-note-template-language-design-v1.md](./settings/daynest-daily-note-template-language-design-v1.md)
 
 Role:
 
@@ -61,19 +61,19 @@ Answers:
 
 ## Supporting Documents
 
-### [daynest-narrative-language-design-v1.md](../daynest-narrative-language-design-v1.md)
+### [daynest-narrative-language-design-v1.md](./narrative/daynest-narrative-language-design-v1.md)
 
 Clarification:
 
 - narrative-language design defines visible wording and tone
 
-### [daynest-daily-note-user-settings-v1.md](../daynest-daily-note-user-settings-v1.md)
+### [daynest-daily-note-user-settings-v1.md](./settings/daynest-daily-note-user-settings-v1.md)
 
 Clarification:
 
 - the daily-note user-settings document is partially superseded
 
-### [daynest-storage-projection-decision-matrix-v1.md](../daynest-storage-projection-decision-matrix-v1.md)
+### [daynest-storage-projection-decision-matrix-v1.md](./architecture/daynest-storage-projection-decision-matrix-v1.md)
 
 Clarification:
 
@@ -81,9 +81,9 @@ Clarification:
 
 ## Historical Checkpoints
 
-### [daynest-daily-agent-design-v1.md](../daynest-daily-agent-design-v1.md)
-### [daynest-daily-agent-design-review-v1.md](../daynest-daily-agent-design-review-v1.md)
-### [daynest-manual-test-command-design-v1.md](../daynest-manual-test-command-design-v1.md)
+### [daynest-daily-agent-design-v1.md](./checkpoints/daynest-daily-agent-design-v1.md)
+### [daynest-daily-agent-design-review-v1.md](./checkpoints/daynest-daily-agent-design-review-v1.md)
+### [daynest-manual-test-command-design-v1.md](./checkpoints/daynest-manual-test-command-design-v1.md)
 
 Clarification:
 

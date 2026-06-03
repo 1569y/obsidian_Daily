@@ -48,7 +48,7 @@ Raw MoodNest chat must not silently flow into DayNest.
 
 ## 3. DayNest Current Source-Of-Truth Documents
 
-### [daynest-growth-economy-domain-design-v1.md](./daynest-growth-economy-domain-design-v1.md)
+### [daynest-growth-economy-domain-design-v1.md](./daynest/product/daynest-growth-economy-domain-design-v1.md)
 
 Role:
 
@@ -64,7 +64,7 @@ Conflict priority:
 
 - highest priority for DayNest product/domain questions
 
-### [daynest-data-template-analytics-architecture-v1.md](./daynest-data-template-analytics-architecture-v1.md)
+### [daynest-data-template-analytics-architecture-v1.md](./daynest/architecture/daynest-data-template-analytics-architecture-v1.md)
 
 Role:
 
@@ -82,7 +82,7 @@ Conflict priority:
 
 - highest priority for DayNest storage, template, analytics, and cache questions
 
-### [daynest-daily-note-template-language-design-v1.md](./daynest-daily-note-template-language-design-v1.md)
+### [daynest-daily-note-template-language-design-v1.md](./daynest/settings/daynest-daily-note-template-language-design-v1.md)
 
 Role:
 
@@ -101,7 +101,7 @@ Conflict priority:
 
 ## 4. DayNest Active Supporting Documents
 
-### [daynest-narrative-language-design-v1.md](./daynest-narrative-language-design-v1.md)
+### [daynest-narrative-language-design-v1.md](./daynest/narrative/daynest-narrative-language-design-v1.md)
 
 Role:
 
@@ -112,7 +112,7 @@ Clarification:
 - this document defines user-facing narrative labels and tone
 - it does not override neutral internal identifiers in data models
 
-### [daynest-daily-note-user-settings-v1.md](./daynest-daily-note-user-settings-v1.md)
+### [daynest-daily-note-user-settings-v1.md](./daynest/settings/daynest-daily-note-user-settings-v1.md)
 
 Role:
 
@@ -126,9 +126,9 @@ Clarification:
 
 ## 5. DayNest Historical Checkpoint Documents
 
-### [daynest-daily-agent-design-v1.md](./daynest-daily-agent-design-v1.md)
-### [daynest-daily-agent-design-review-v1.md](./daynest-daily-agent-design-review-v1.md)
-### [daynest-manual-test-command-design-v1.md](./daynest-manual-test-command-design-v1.md)
+### [daynest-daily-agent-design-v1.md](./daynest/checkpoints/daynest-daily-agent-design-v1.md)
+### [daynest-daily-agent-design-review-v1.md](./daynest/checkpoints/daynest-daily-agent-design-review-v1.md)
+### [daynest-manual-test-command-design-v1.md](./daynest/checkpoints/daynest-manual-test-command-design-v1.md)
 
 Clarification:
 
@@ -138,31 +138,31 @@ Clarification:
 
 ## 6. MoodNest Current Source-Of-Truth Documents
 
-### [moodnest-product-design-v1.md](./moodnest-product-design-v1.md)
+### [moodnest-product-design-v1.md](./moodnest/product/moodnest-product-design-v1.md)
 
 Role:
 
 - primary MoodNest product identity and scope
 
-### [dialogue-tone-guide.md](./dialogue-tone-guide.md)
+### [dialogue-tone-guide.md](./moodnest/safety/dialogue-tone-guide.md)
 
 Role:
 
 - primary MoodNest tone and language calibration guide
 
-### [moodnest-support-strategy-map.md](./moodnest-support-strategy-map.md)
+### [moodnest-support-strategy-map.md](./moodnest/safety/moodnest-support-strategy-map.md)
 
 Role:
 
 - primary MoodNest support-strategy and safety-handling guide
 
-### [moodnest-mini-eval-v1.md](./moodnest-mini-eval-v1.md)
+### [moodnest-mini-eval-v1.md](./moodnest/evaluation/moodnest-mini-eval-v1.md)
 
 Role:
 
 - primary MoodNest reply-quality evaluation protocol
 
-### [moodnest-mini-eval-v1.json](./moodnest-mini-eval-v1.json)
+### [moodnest-mini-eval-v1.json](./moodnest/evaluation/moodnest-mini-eval-v1.json)
 
 Role:
 
@@ -170,7 +170,7 @@ Role:
 
 ## 7. MoodNest Supporting Document
 
-### [moodnest-information-architecture-v1.md](./moodnest-information-architecture-v1.md)
+### [moodnest-information-architecture-v1.md](./moodnest/product/moodnest-information-architecture-v1.md)
 
 Clarification:
 
@@ -179,10 +179,10 @@ Clarification:
 
 ## 8. Shared Architecture-Support Documents
 
-### [module-map.md](./architecture/module-map.md)
-### [startup-chain.md](./architecture/startup-chain.md)
-### [bundle-risk.md](./architecture/bundle-risk.md)
-### [safe-refactor-plan.md](./architecture/safe-refactor-plan.md)
+### [module-map.md](./shared/architecture/module-map.md)
+### [startup-chain.md](./shared/architecture/startup-chain.md)
+### [bundle-risk.md](./shared/architecture/bundle-risk.md)
+### [safe-refactor-plan.md](./shared/architecture/safe-refactor-plan.md)
 
 Clarification:
 
@@ -217,7 +217,7 @@ Clarification:
 
 Recommended next document:
 
-- `docs/daynest-storage-projection-decision-matrix-v1.md`
+- `docs/daynest/architecture/daynest-storage-projection-decision-matrix-v1.md`
 
 ## 12. Future Governance
 
