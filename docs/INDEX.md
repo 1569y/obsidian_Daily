@@ -124,6 +124,18 @@ Clarification:
 - it should not be treated as the final settings schema
 - read it as useful context for settings-source thinking, not the final model contract
 
+### [daynest-storage-projection-decision-matrix-v1.md](./daynest/architecture/daynest-storage-projection-decision-matrix-v1.md)
+
+Role:
+
+- active MVP engineering decision matrix
+
+Clarification:
+
+- this document narrows storage, ledger, projection, migration, compatibility, and template-location choices before ADR creation
+- it is not an ADR
+- it is not runtime implementation approval
+
 ## 5. DayNest Historical Checkpoint Documents
 
 ### [daynest-daily-agent-design-v1.md](./daynest/checkpoints/daynest-daily-agent-design-v1.md)
@@ -202,22 +214,29 @@ Clarification:
 
 ## 10. Current Unresolved Decisions
 
-- one-file-per-task versus grouped task index
-- embedded checklist subtasks versus independent subtask records
-- JSONL versus JSON sidecar versus Markdown ledger
-- projection strategies
-- user-edit conflict handling
-- cache location
-- custom template location
-- linked-note backlinks
-- schema migration
-- `integrationMode` versus `settingsSource`
+- JSONL ledger prototype result
+- promoted-subtask UX
+- managed-block marker design
+- linked-note backlink behavior
+- custom vault template-file UX
+- dashboard cache location
+- schema migration workflow
+- narrative-label customization
+- game-layer visibility controls
 
 ## 11. Next Recommended Artifact
 
-Recommended next document:
+Immediate next phase:
 
-- `docs/daynest/architecture/daynest-storage-projection-decision-matrix-v1.md`
+- `Docs-4B`: status metadata headers
+
+After that:
+
+- `Docs-5`: `archive/` and `adr/` structure
+
+First ADR candidate:
+
+- `ADR-001`: top-level task storage and subtask promotion model
 
 ## 12. Future Governance
 

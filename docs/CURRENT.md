@@ -4,7 +4,9 @@
 
 - Documentation Governance Consolidation
 - Docs-1 migration plan is complete
-- Docs-2 entry-point creation is active
+- Docs-2 entry-point creation is complete
+- Docs-3 file migration and relative-link repair are complete
+- Docs-4A global navigation refresh is active
 
 ## Validated Runtime Checkpoint
 
@@ -29,12 +31,14 @@
 - DayNest data / template / analytics architecture
 - DayNest storage / projection decision matrix
 - documentation reorganization plan
+- Docs-3 documentation-path migration
+- relative-link repair
 
 ## Current Task
 
-- create module entry points
-- review them
-- then perform one docs-only migration batch
+- refresh `INDEX.md` and `CURRENT.md`
+- review Docs-4A
+- then add status metadata in Docs-4B
 
 ## Do Not Implement Yet
 
@@ -50,14 +54,18 @@
 - archive moves
 - ADR files
 
+Clarification:
+
+- archive moves and ADR files remain prohibited in Docs-4A
+- they are planned for later phases
+
 ## Next Planned Steps
 
-1. review `CURRENT.md` and module README files
-2. Docs-3: move documentation files and repair relative links
-3. Docs-4: add status metadata headers
-4. Docs-5: create archive/ and adr/ structure
-5. create ADR-001
-6. only after ADR-001 review, add minimal canonical task schema types
+1. review Docs-4A `INDEX` and `CURRENT` refresh
+2. Docs-4B: add status metadata headers
+3. Docs-5: create archive/ and adr/ structure
+4. create ADR-001
+5. only after ADR-001 review, add minimal canonical task schema types
 
 ## Boundary Reminder
 
