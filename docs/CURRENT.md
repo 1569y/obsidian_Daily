@@ -8,7 +8,9 @@
 - Docs-3 file migration and relative-link repair are complete
 - Docs-4A global navigation refresh is complete
 - Docs-4B-1 DayNest metadata is complete
-- Docs-4B-2 MoodNest metadata is active
+- Docs-4B-2 MoodNest metadata is complete
+- Docs-4B-3A shared-architecture classification review is complete
+- Docs-4B-3B shared-architecture metadata is active
 
 ## Validated Runtime Checkpoint
 
@@ -38,8 +40,8 @@
 
 ## Current Task
 
-- add MoodNest document status metadata
-- review Docs-4B-2
+- add shared-architecture document status metadata
+- review Docs-4B-3B
 - then continue Docs-4B metadata rollout
 
 ## Do Not Implement Yet
@@ -58,17 +60,19 @@
 
 Clarification:
 
-- archive moves and ADR files remain prohibited in Docs-4B-2
+- shared-architecture body refresh is deferred
+- archive moves and ADR files remain prohibited in Docs-4B-3B
 - they are planned for later phases
 
 ## Next Planned Steps
 
-1. review Docs-4B-2 MoodNest metadata
-2. Docs-4B-3: add shared-architecture and governance metadata headers
+1. review Docs-4B-3B shared-architecture metadata
+2. Docs-4B-3C: add governance-entry metadata headers
 3. Docs-4B-4: refresh INDEX and CURRENT after metadata completion
-4. Docs-5: create archive/ and adr/ structure
-5. create ADR-001
-6. only after ADR-001 review, add minimal canonical task schema types
+4. shared-architecture body-refresh planning batch
+5. Docs-5: create archive/ and adr/ structure
+6. create ADR-001
+7. only after ADR-001 review, add minimal canonical task schema types
 
 ## Boundary Reminder
 
