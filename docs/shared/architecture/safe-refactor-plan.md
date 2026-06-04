@@ -1,3 +1,11 @@
+---
+status: partially-superseded
+scope: shared-safe-refactor-plan
+last-reviewed-checkpoint: docs-4b-3b
+supersedes: []
+superseded-by: []
+---
+
 # Safe Refactor Plan
 
 本计划刻意采用分阶段、可回退（reversible）、非破坏式的方式推进。

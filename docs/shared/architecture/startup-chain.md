@@ -1,3 +1,11 @@
+---
+status: partially-superseded
+scope: shared-startup-chain
+last-reviewed-checkpoint: docs-4b-3b
+supersedes: []
+superseded-by: []
+---
+
 # Startup Chain
 
 本文件记录从 `main.ts` 开始的当前插件启动链路（startup chain）。

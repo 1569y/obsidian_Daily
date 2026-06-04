@@ -1,3 +1,11 @@
+---
+status: active-supporting
+scope: shared-bundle-risk
+last-reviewed-checkpoint: docs-4b-3b
+supersedes: []
+superseded-by: []
+---
+
 # Bundle Risk
 
 本文件记录当前 MoodNest 插件的打包体积风险（bundle risk）与打包形态风险。

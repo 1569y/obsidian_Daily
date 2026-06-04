@@ -1,3 +1,11 @@
+---
+status: partially-superseded
+scope: shared-module-map
+last-reviewed-checkpoint: docs-4b-3b
+supersedes: []
+superseded-by: []
+---
+
 # Module Map
 
 本文件记录截至 2026-05-23 的 MoodNest 插件当前文件职责映射（file responsibility map）。
