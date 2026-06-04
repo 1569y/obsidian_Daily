@@ -1,3 +1,13 @@
+---
+status: historical-checkpoint
+scope: documentation-audit-snapshot
+last-reviewed-checkpoint: docs-4b-3c
+supersedes: []
+superseded-by:
+  - ./INDEX.md
+  - ./documentation-reorganization-plan-v1.md
+---
+
 # Documentation Audit v1
 
 ## 1. Purpose

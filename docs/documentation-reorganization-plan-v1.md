@@ -1,3 +1,11 @@
+---
+status: active-supporting
+scope: documentation-reorganization-plan
+last-reviewed-checkpoint: docs-4b-3c
+supersedes: []
+superseded-by: []
+---
+
 # Documentation Reorganization Plan v1
 
 ## 1. Purpose

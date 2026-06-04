@@ -1,3 +1,11 @@
+---
+status: active-source-of-truth
+scope: documentation-navigation-index
+last-reviewed-checkpoint: docs-4b-3c
+supersedes: []
+superseded-by: []
+---
+
 # Documentation Index
 
 ## 1. Purpose

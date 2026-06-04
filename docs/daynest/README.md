@@ -1,3 +1,11 @@
+---
+status: active-supporting
+scope: daynest-documentation-entry
+last-reviewed-checkpoint: docs-4b-3c
+supersedes: []
+superseded-by: []
+---
+
 # DayNest Documentation
 
 ## DayNest Identity

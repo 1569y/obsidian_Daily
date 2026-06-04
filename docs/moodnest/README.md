@@ -1,3 +1,11 @@
+---
+status: active-supporting
+scope: moodnest-documentation-entry
+last-reviewed-checkpoint: docs-4b-3c
+supersedes: []
+superseded-by: []
+---
+
 # MoodNest Documentation
 
 ## MoodNest Identity
