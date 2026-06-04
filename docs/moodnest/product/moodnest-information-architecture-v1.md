@@ -1,4 +1,14 @@
 
+---
+status: partially-superseded
+scope: moodnest-information-architecture
+last-reviewed-checkpoint: docs-4b-2
+supersedes: []
+superseded-by:
+  - ../../daynest/product/daynest-growth-economy-domain-design-v1.md
+  - ../../daynest/architecture/daynest-data-template-analytics-architecture-v1.md
+---
+
 # MoodNest 信息架构图 + 功能模块路线图 v1
 
 ## 1. 文档目的

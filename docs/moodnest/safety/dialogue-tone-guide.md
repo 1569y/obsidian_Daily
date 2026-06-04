@@ -1,3 +1,11 @@
+---
+status: active-source-of-truth
+scope: moodnest-dialogue-tone-safety
+last-reviewed-checkpoint: docs-4b-2
+supersedes: []
+superseded-by: []
+---
+
 # MoodNest 附录：对话语气实例与常见偏差对照表
 
 > 本文档作为 `AGENTS.md` 的补充页，主要用于校准 MoodNest 的“语言手感”。

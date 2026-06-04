@@ -1,3 +1,11 @@
+---
+status: active-source-of-truth
+scope: moodnest-support-strategy
+last-reviewed-checkpoint: docs-4b-2
+supersedes: []
+superseded-by: []
+---
+
 # MoodNest Support Strategy Map
 
 ## 1. 文档目的

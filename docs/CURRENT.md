@@ -7,7 +7,8 @@
 - Docs-2 entry-point creation is complete
 - Docs-3 file migration and relative-link repair are complete
 - Docs-4A global navigation refresh is complete
-- Docs-4B-1 DayNest metadata is active
+- Docs-4B-1 DayNest metadata is complete
+- Docs-4B-2 MoodNest metadata is active
 
 ## Validated Runtime Checkpoint
 
@@ -37,8 +38,8 @@
 
 ## Current Task
 
-- add DayNest document status metadata
-- review Docs-4B-1
+- add MoodNest document status metadata
+- review Docs-4B-2
 - then continue Docs-4B metadata rollout
 
 ## Do Not Implement Yet
@@ -57,18 +58,17 @@
 
 Clarification:
 
-- archive moves and ADR files remain prohibited in Docs-4B-1
+- archive moves and ADR files remain prohibited in Docs-4B-2
 - they are planned for later phases
 
 ## Next Planned Steps
 
-1. review Docs-4B-1 DayNest metadata
-2. Docs-4B-2: add MoodNest metadata headers
-3. Docs-4B-3: add shared-architecture and governance metadata headers
-4. Docs-4B-4: refresh INDEX and CURRENT after metadata completion
-5. Docs-5: create archive/ and adr/ structure
-6. create ADR-001
-7. only after ADR-001 review, add minimal canonical task schema types
+1. review Docs-4B-2 MoodNest metadata
+2. Docs-4B-3: add shared-architecture and governance metadata headers
+3. Docs-4B-4: refresh INDEX and CURRENT after metadata completion
+4. Docs-5: create archive/ and adr/ structure
+5. create ADR-001
+6. only after ADR-001 review, add minimal canonical task schema types
 
 ## Boundary Reminder
 

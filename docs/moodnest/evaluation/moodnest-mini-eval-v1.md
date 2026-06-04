@@ -1,3 +1,11 @@
+---
+status: active-supporting
+scope: moodnest-mini-evaluation-guide
+last-reviewed-checkpoint: docs-4b-2
+supersedes: []
+superseded-by: []
+---
+
 # MoodNest Mini Eval v1
 
 ## 1. 目的

@@ -1,3 +1,11 @@
+---
+status: active-source-of-truth
+scope: moodnest-product-design
+last-reviewed-checkpoint: docs-4b-2
+supersedes: []
+superseded-by: []
+---
+
 # MoodNest 产品设计总方案 v1
 
 ## 1. 产品一句话定义
