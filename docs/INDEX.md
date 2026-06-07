@@ -1,7 +1,7 @@
 ---
 status: active-source-of-truth
 scope: documentation-navigation-index
-last-reviewed-checkpoint: docs-4b-4
+last-reviewed-checkpoint: docs-5
 supersedes: []
 superseded-by: []
 ---
@@ -210,7 +210,21 @@ Clarification:
 - they are not product source-of-truth documents
 - `startup-chain.md` and `safe-refactor-plan.md` may contain time-sensitive assumptions
 
-## 9. Conflict-Resolution Rules
+## 9. Governance Structure
+
+### [archive/README.md](./archive/README.md)
+
+Role:
+
+- archive boundary and archive-move rules
+
+### [adr/README.md](./adr/README.md)
+
+Role:
+
+- ADR process, status, and naming entry point
+
+## 10. Conflict-Resolution Rules
 
 - newer source-of-truth docs override older milestone-era assumptions
 - historical docs are context, not implementation instructions
@@ -220,7 +234,7 @@ Clarification:
 - charts consume canonical records and ledgers
 - MoodNest raw chats remain isolated
 
-## 10. Current Unresolved Decisions
+## 11. Current Unresolved Decisions
 
 - JSONL ledger prototype result
 - promoted-subtask UX
@@ -232,20 +246,23 @@ Clarification:
 - narrative-label customization
 - game-layer visibility controls
 
-## 11. Workflow And Runtime Checkpoint
+## 12. Workflow And Runtime Checkpoint
 
 - Workflow-0 Codex review-bundle tooling is complete
 - Docs-4B governance-entry metadata rollout is complete
+- Docs-5 establishes the archive and ADR documentation structure
+- no files were archived in this batch
 - runtime remains intentionally narrow:
   - manual dev-only `append_daily_log` path only
   - no Daily Agent runtime yet
   - no DayNest settings UI yet
   - no DayNest dashboard yet
   - no task / expense / timer execution yet
+- runtime implementation must not broaden before `ADR-001` is accepted
 
-## 12. Next Recommended Artifact
+## 13. Next Recommended Artifact
 
-Next documentation phase:
+Current documentation phase:
 
 - `Docs-5`: establish `docs/archive/` and `docs/adr/`
 
@@ -253,8 +270,7 @@ Next architecture decision after Docs-5:
 
 - `ADR-001`: top-level task storage and subtask promotion model
 
-## 13. Future Governance
+## 14. Future Governance
 
-- create `docs/archive/` and `docs/adr/` in Docs-5
 - create ADR files only after the `docs/adr/` structure exists
 - do not delete historical docs before archival links are stable
