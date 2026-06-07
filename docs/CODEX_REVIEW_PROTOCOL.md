@@ -77,6 +77,7 @@ The exporter resolves the Git repository root automatically before running Git c
 The exporter makes each bundle directory unique by combining a local timestamp, the batch label, and the review mode.
 If a fully resolved bundle directory unexpectedly already exists, the exporter refuses to overwrite it.
 Generated folder format: `yyyyMMdd-HHmmss-fff__<batch>__<mode>`.
+Generated artifact filenames are prefixed with the full Bundle ID.
 Example: `20260607-214530-482__docs-4b-4__pre-commit`.
 
 ## Commit Message Rule
@@ -122,5 +123,6 @@ Post-commit export:
 Review bundles are generated outside the repository under `$env:TEMP`.
 Do not commit generated review bundles.
 Do not store patches in the repository unless explicitly requested.
-Upload `review-summary.txt` and `changes.patch` from the newest timestamped bundle for pre-commit review.
-Post-commit bundles may also contain per-commit patches and `combined.patch`.
+For pre-commit review, upload the newest `<bundleId>__review-summary.txt` and `<bundleId>__changes.patch`.
+Post-commit bundles may additionally contain `<bundleId>__combined.patch` and `<bundleId>__commit-<nn>__<short-sha>.patch`.
+Do not upload artifacts from older timestamped bundles.

@@ -275,6 +275,33 @@ function Test-CommitChain {
     }
 }
 
+function Get-BundleArtifactFileName {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$BundleId,
+
+        [Parameter(Mandatory = $true)]
+        [string]$BaseName
+    )
+
+    return '{0}__{1}' -f $BundleId, $BaseName
+}
+
+function Get-BundleCommitPatchFileName {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$BundleId,
+
+        [Parameter(Mandatory = $true)]
+        [int]$CommitIndex,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ShortSha
+    )
+
+    return '{0}__commit-{1}__{2}.patch' -f $BundleId, $CommitIndex.ToString('00'), $ShortSha
+}
+
 $scriptExitCode = 1
 $locationPushed = $false
 $invocationDirectory = (Get-Location).ProviderPath
@@ -293,6 +320,10 @@ try {
     $reviewRoot = [System.IO.Path]::GetFullPath((Join-Path $env:TEMP 'moodnest-review'))
     $reviewRootWithSeparator = $reviewRoot.TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
     $bundleDir = [System.IO.Path]::GetFullPath((Join-Path $reviewRoot $bundleId))
+    $reviewSummaryFileName = Get-BundleArtifactFileName -BundleId $bundleId -BaseName 'review-summary.txt'
+    $changesPatchFileName = Get-BundleArtifactFileName -BundleId $bundleId -BaseName 'changes.patch'
+    $buildFileName = Get-BundleArtifactFileName -BundleId $bundleId -BaseName 'build.txt'
+    $combinedPatchFileName = Get-BundleArtifactFileName -BundleId $bundleId -BaseName 'combined.patch'
 
     if (-not $bundleDir.StartsWith($reviewRootWithSeparator, [System.StringComparison]::OrdinalIgnoreCase)) {
         throw "Resolved bundle directory escapes the review root.`nReview root: $reviewRootWithSeparator`nResolved bundle: $bundleDir"
@@ -414,8 +445,8 @@ try {
             $reviewPassed = $false
         }
 
-        ($cachedPatch.Output | Out-String) | Out-File -FilePath (Join-Path $bundleDir 'changes.patch') -Encoding utf8
-        $generatedFiles.Add('changes.patch') | Out-Null
+        ($cachedPatch.Output | Out-String) | Out-File -FilePath (Join-Path $bundleDir $changesPatchFileName) -Encoding utf8
+        $generatedFiles.Add($changesPatchFileName) | Out-Null
 
         Add-Section -Parts $summaryParts -Title 'Staged Status' -Body $stagedStatusText
         Add-Section -Parts $summaryParts -Title 'Staged File List' -Body (Convert-LinesToText -Lines $cachedNameStatus.Output)
@@ -434,7 +465,8 @@ try {
         $allCommitPaths = New-Object System.Collections.Generic.List[string]
         $commitValidationFailures = New-Object System.Collections.Generic.List[string]
 
-        foreach ($commit in @($Commits)) {
+        for ($commitIndex = 0; $commitIndex -lt @($Commits).Count; $commitIndex++) {
+            $commit = @($Commits)[$commitIndex]
             $verifySpec = '{0}^{{commit}}' -f $commit
             $verifyCommit = Invoke-GitCapture -Arguments @('rev-parse', '--verify', '--end-of-options', $verifySpec) -AllowFailure
             if ($verifyCommit.ExitCode -ne 0) {
@@ -453,8 +485,9 @@ try {
             $commitCheck = Invoke-GitCapture -Arguments @('diff', '--check', ($resolvedCommit + '^'), $resolvedCommit) -AllowFailure
 
             $shortSha = $resolvedCommit.Substring(0, [Math]::Min(7, $resolvedCommit.Length))
-            ($commitPatch.Output | Out-String) | Out-File -FilePath (Join-Path $bundleDir ($shortSha + '.patch')) -Encoding utf8
-            $generatedFiles.Add($shortSha + '.patch') | Out-Null
+            $commitPatchFileName = Get-BundleCommitPatchFileName -BundleId $bundleId -CommitIndex ($commitIndex + 1) -ShortSha $shortSha
+            ($commitPatch.Output | Out-String) | Out-File -FilePath (Join-Path $bundleDir $commitPatchFileName) -Encoding utf8
+            $generatedFiles.Add($commitPatchFileName) | Out-Null
 
             $commitPaths = Get-ChangedPathsFromNameStatus -Lines $commitTree.Output
             foreach ($path in $commitPaths) {
@@ -576,8 +609,8 @@ try {
                 $combinedPatch = Invoke-GitCapture -Arguments @('diff', '--no-color', '--binary', $combinedBase, $verifiedCommits[$verifiedCommits.Count - 1])
                 $combinedCheck = Invoke-GitCapture -Arguments @('diff', '--check', $combinedBase, $verifiedCommits[$verifiedCommits.Count - 1]) -AllowFailure
 
-                ($combinedPatch.Output | Out-String) | Out-File -FilePath (Join-Path $bundleDir 'combined.patch') -Encoding utf8
-                $generatedFiles.Add('combined.patch') | Out-Null
+                ($combinedPatch.Output | Out-String) | Out-File -FilePath (Join-Path $bundleDir $combinedPatchFileName) -Encoding utf8
+                $generatedFiles.Add($combinedPatchFileName) | Out-Null
 
                 if ($combinedCheck.ExitCode -ne 0) {
                     $reviewPassed = $false
@@ -612,8 +645,8 @@ try {
     }
 
     $buildResult = Invoke-CommandCapture -Command $BuildCommand -AllowFailure
-    ($buildResult.Output | Out-String) | Out-File -FilePath (Join-Path $bundleDir 'build.txt') -Encoding utf8
-    $generatedFiles.Add('build.txt') | Out-Null
+    ($buildResult.Output | Out-String) | Out-File -FilePath (Join-Path $bundleDir $buildFileName) -Encoding utf8
+    $generatedFiles.Add($buildFileName) | Out-Null
 
     if ($buildResult.ExitCode -ne 0) {
         $reviewPassed = $false
@@ -646,8 +679,8 @@ try {
     $reviewGateText = if ($reviewPassed) { 'PASS' } else { 'FAIL' }
     Add-Section -Parts $summaryParts -Title 'Review Gate Result' -Body $reviewGateText
 
-    ($summaryParts -join [Environment]::NewLine) | Out-File -FilePath (Join-Path $bundleDir 'review-summary.txt') -Encoding utf8
-    $generatedFiles.Add('review-summary.txt') | Out-Null
+    ($summaryParts -join [Environment]::NewLine) | Out-File -FilePath (Join-Path $bundleDir $reviewSummaryFileName) -Encoding utf8
+    $generatedFiles.Add($reviewSummaryFileName) | Out-Null
 
     Write-Host "Bundle directory: $bundleDir"
     Write-Host "Bundle ID: $bundleId"
