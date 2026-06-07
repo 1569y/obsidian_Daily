@@ -1,7 +1,7 @@
 ---
 status: active-source-of-truth
 scope: current-project-state
-last-reviewed-checkpoint: adr-001a
+last-reviewed-checkpoint: adr-001b
 supersedes: []
 superseded-by: []
 ---
@@ -23,7 +23,7 @@ superseded-by: []
 - Docs-4B-3C governance-entry metadata is complete
 - Docs-4B-4 INDEX and CURRENT finalization is complete
 - Docs-5 archive and ADR structure is complete
-- ADR-001A proposed draft is the active docs-only batch
+- ADR-001B accepted ADR finalisation is the current docs-only batch
 
 ## Validated Runtime Checkpoint
 
@@ -45,15 +45,16 @@ superseded-by: []
 
 ## Current Task
 
-- draft `ADR-001-task-storage-and-subtask-promotion.md`
+- finalize and accept `ADR-001-task-storage-and-subtask-promotion.md`
 - keep this batch docs-only
 - do not expand runtime yet
 
 ## Next Planned Steps
 
-1. review ADR-001
-2. accept or revise ADR-001
-3. Task Schema 1A begins only after ADR-001 is accepted
+1. ADR-001 is accepted
+2. Task Schema 1A is next
+3. Task Schema 1A is pure types only
+4. no storage, executor, Agent, UI, or dashboard changes yet
 
 ## Do Not Implement Yet
 
@@ -66,8 +67,11 @@ superseded-by: []
 - dashboard
 - Agent wiring
 - LLM wiring for DayNest
-- runtime expansion before ADR-001 is accepted
-- broader DayNest runtime implementation before ADR-001 is accepted
+- storage changes
+- executor changes
+- Agent changes
+- UI changes
+- dashboard changes
 
 ## Boundary Reminder
 

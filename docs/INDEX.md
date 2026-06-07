@@ -1,7 +1,7 @@
 ---
 status: active-source-of-truth
 scope: documentation-navigation-index
-last-reviewed-checkpoint: adr-001a
+last-reviewed-checkpoint: adr-001b
 supersedes: []
 superseded-by: []
 ---
@@ -228,7 +228,7 @@ Role:
 
 Role:
 
-- proposed DayNest task storage and subtask promotion ADR
+- accepted DayNest task storage and subtask promotion ADR
 
 ## 10. Conflict-Resolution Rules
 
@@ -258,24 +258,25 @@ Role:
 - Docs-4B governance-entry metadata rollout is complete
 - Docs-5 archive and ADR structure is complete
 - no files were archived in this batch
-- ADR-001 proposed draft is active
+- ADR-001 is accepted
 - runtime remains intentionally narrow:
   - manual dev-only `append_daily_log` path only
   - no Daily Agent runtime yet
   - no DayNest settings UI yet
   - no DayNest dashboard yet
   - no task / expense / timer execution yet
-- runtime implementation must not broaden before `ADR-001` is accepted
+- runtime implementation may begin only through the narrow pure-type Task Schema 1A batch
+- do not broaden runtime beyond Task Schema 1A yet
 
 ## 13. Next Recommended Artifact
 
 Current documentation phase:
 
-- `ADR-001A`: proposed draft and review
+- `ADR-001B`: accepted ADR finalisation
 
 Next architecture step after review:
 
-- accept or revise `ADR-001`: top-level task storage and subtask promotion model
+- `Task Schema 1A`: pure task types only
 
 ## 14. Future Governance
 

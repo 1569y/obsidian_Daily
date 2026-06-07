@@ -1,7 +1,7 @@
 ---
 status: active-supporting
 scope: daynest-documentation-entry
-last-reviewed-checkpoint: adr-001a
+last-reviewed-checkpoint: adr-001b
 supersedes: []
 superseded-by: []
 ---
@@ -93,8 +93,8 @@ Clarification:
 
 Clarification:
 
-- `ADR-001` is proposed, not yet accepted
-- runtime implementation must not broaden until it is reviewed and accepted
+- `ADR-001` is accepted
+- `Task Schema 1A` is the next narrow implementation batch
 
 ## Historical Checkpoints
 

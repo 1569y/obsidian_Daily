@@ -1,7 +1,7 @@
 ---
-status: proposed
+status: accepted
 scope: daynest-task-architecture-decision
-last-reviewed-checkpoint: adr-001a
+last-reviewed-checkpoint: adr-001b
 supersedes: []
 superseded-by: []
 ---
@@ -10,7 +10,7 @@ superseded-by: []
 
 ## Status
 
-proposed
+accepted
 
 ## Context
 
@@ -129,6 +129,11 @@ Each task record has:
 This ADR does not define the complete final TypeScript interface.
 It defines the architecture boundary, not the implementation code.
 
+Canonical task relationships must preserve deterministic sibling ordering.
+Re-rendering a task tree must not arbitrarily reorder siblings.
+Reparenting and manual reordering must preserve stable task ids.
+The exact representation, such as `sortOrder`, `rank`, or `positionKey`, is deferred to Task Schema 1A.
+
 ### 3. Root task definition
 
 A root task is any task without `parentTaskId`.
@@ -162,6 +167,7 @@ Require:
 - `parentTaskId` must not equal the task id
 - `parentTaskId` should reference an existing task when persisted
 - parent relationships must remain acyclic
+- sibling ordering must remain deterministic
 - reparenting must not silently lose historical links
 - projections must derive the tree from canonical flat records
 
@@ -204,13 +210,17 @@ Progress is derived, not stored as canonical mutable state.
 
 For MVP planning, recommend:
 
-- cancelled descendants are excluded
-- a leaf task contributes completed or incomplete state
-- parent progress may be calculated from active leaf descendants
+- parent progress is derived from non-cancelled leaf descendants
+- completed and incomplete non-cancelled leaves both participate in the denominator
+- cancelled leaves are excluded
 - if a task has no descendants, its progress follows its own status
 - future weighted progress may be introduced later if estimated effort is added
 
 The exact helper implementation belongs to a later pure-helper batch.
+
+Future effort estimates may later distinguish a task's own effort from aggregated descendant effort.
+Progress percentage, reward-token balance, and growth balance must not be conflated.
+Weighted progress and milestone reward rules remain deferred.
 
 ### 11. View placement rule
 
@@ -223,10 +233,25 @@ Recommend separating:
 - Upcoming Deadlines
   - tasks with future due dates within a configurable window
 
+An active long-running root task remains visible in Ongoing Projects from creation or activation until it is completed or cancelled.
+When its `dueDate` enters the configurable upcoming window, it also appears in Upcoming Deadlines.
 A root task should not automatically flood Today Tasks every day merely because it remains open.
+Actionable leaf tasks scheduled today, due today, or overdue normally appear in Today Tasks.
 Its actionable children should normally appear there.
+`scheduledDate` represents an intended actionable date.
+`dueDate` represents a deadline.
+Do not introduce a new `startDate` field in this ADR.
 
-### 12. Ledger separation
+### 12. Parent-removal safety rule
+
+MVP operations must not silently cascade-delete descendants.
+MVP operations must not silently create orphan tasks.
+Cancelling, archiving, or removing a parent with descendants requires an explicit user-confirmed strategy.
+Preferred MVP behaviour is to preserve canonical records and use status changes rather than hard deletion.
+Exact delete and archive UX is deferred.
+Historical links, timer links, and future ledger references must remain preserved.
+
+### 13. Ledger separation
 
 Do not store reward-token balance, growth balance, or timer totals directly on mutable task records.
 
@@ -238,7 +263,7 @@ Later:
 - parent and child completion must not silently create duplicate rewards
 - milestone reward policy is deferred to a later ADR
 
-### 13. Markdown projection boundary
+### 14. Markdown projection boundary
 
 Markdown task trees are derived projections for readability.
 
@@ -260,7 +285,7 @@ State clearly:
 - stable markers or managed-block details are deferred to ADR-003
 - manual-edit conflict handling is deferred to ADR-003
 
-### 14. Physical persistence format boundary
+### 15. Physical persistence format boundary
 
 State explicitly:
 
@@ -278,12 +303,14 @@ Positive consequences:
 - timers and ledgers can link to stable task ids
 - tree projections remain readable
 - UI can distinguish Today Tasks from Ongoing Projects
+- flat trees need deterministic sibling ordering
 
 Trade-offs:
 
 - relationship queries are required to reconstruct trees
 - cycle prevention is required
 - projection logic must be careful
+- parent-removal flows require explicit handling
 - exact progress weighting is deferred
 - manual Markdown edit handling remains unresolved
 - deep nesting is possible in storage but intentionally not prioritised in MVP UI
@@ -291,8 +318,10 @@ Trade-offs:
 ## Deferred Questions
 
 - JSON vs JSONL vs another local mutable-record format
+- exact sibling-order field representation
 - managed-block markers in Markdown projection
 - manual Markdown edit reconciliation
+- delete/archive UX
 - maximum visible UI nesting depth
 - Agent-generated decomposition depth
 - optional effort estimates
