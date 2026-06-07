@@ -1,7 +1,7 @@
 ---
 status: active-source-of-truth
 scope: documentation-navigation-index
-last-reviewed-checkpoint: docs-4b-3c
+last-reviewed-checkpoint: docs-4b-4
 supersedes: []
 superseded-by: []
 ---
@@ -232,23 +232,29 @@ Clarification:
 - narrative-label customization
 - game-layer visibility controls
 
-## 11. Next Recommended Artifact
+## 11. Workflow And Runtime Checkpoint
 
-Immediate next phase:
+- Workflow-0 Codex review-bundle tooling is complete
+- Docs-4B governance-entry metadata rollout is complete
+- runtime remains intentionally narrow:
+  - manual dev-only `append_daily_log` path only
+  - no Daily Agent runtime yet
+  - no DayNest settings UI yet
+  - no DayNest dashboard yet
+  - no task / expense / timer execution yet
 
-- `Docs-4B`: status metadata headers
+## 12. Next Recommended Artifact
 
-After that:
+Next documentation phase:
 
-- `Docs-5`: `archive/` and `adr/` structure
+- `Docs-5`: establish `docs/archive/` and `docs/adr/`
 
-First ADR candidate:
+Next architecture decision after Docs-5:
 
 - `ADR-001`: top-level task storage and subtask promotion model
 
-## 12. Future Governance
+## 13. Future Governance
 
-- add status headers later
-- create `docs/archive/` only after the index is reviewed
-- create `docs/adr/` for accepted architecture decisions
+- create `docs/archive/` and `docs/adr/` in Docs-5
+- create ADR files only after the `docs/adr/` structure exists
 - do not delete historical docs before archival links are stable

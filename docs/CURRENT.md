@@ -1,7 +1,7 @@
 ---
 status: active-source-of-truth
 scope: current-project-state
-last-reviewed-checkpoint: docs-4b-3c
+last-reviewed-checkpoint: docs-4b-4
 supersedes: []
 superseded-by: []
 ---
@@ -11,6 +11,7 @@ superseded-by: []
 ## Current Phase
 
 - Documentation Governance Consolidation
+- Workflow-0 review-bundle tooling is complete
 - Docs-1 migration plan is complete
 - Docs-2 entry-point creation is complete
 - Docs-3 file migration and relative-link repair are complete
@@ -19,7 +20,8 @@ superseded-by: []
 - Docs-4B-2 MoodNest metadata is complete
 - Docs-4B-3A shared-architecture classification review is complete
 - Docs-4B-3B shared-architecture metadata is complete
-- Docs-4B-3C governance-entry metadata is active
+- Docs-4B-3C governance-entry metadata is complete
+- Docs-4B-4 INDEX and CURRENT finalization is the active docs-only batch
 
 ## Validated Runtime Checkpoint
 
@@ -34,24 +36,23 @@ superseded-by: []
   - daily-note target resolver
   - daily-note repository
   - append-only Markdown write
-
-## Completed Documentation Work
-
-- documentation audit
-- global INDEX
-- DayNest growth-economy domain design
-- DayNest narrative-language design
-- DayNest data / template / analytics architecture
-- DayNest storage / projection decision matrix
-- documentation reorganization plan
-- Docs-3 documentation-path migration
-- relative-link repair
+- no Daily Agent runtime yet
+- no DayNest settings UI yet
+- no DayNest dashboard yet
+- no task / expense / timer execution yet
 
 ## Current Task
 
-- add governance-entry document status metadata
-- review Docs-4B-3C
-- then continue Docs-4B metadata rollout
+- finalize Docs-4B-4 navigation state
+- keep this batch docs-only
+- prepare for Docs-5 without starting it yet
+
+## Next Planned Steps
+
+1. finish Docs-4B-4
+2. Docs-5: create `docs/archive/` and `docs/adr/`
+3. ADR-001: top-level task storage and subtask promotion model
+4. only after ADR-001 is accepted, start broader DayNest runtime implementation
 
 ## Do Not Implement Yet
 
@@ -66,21 +67,7 @@ superseded-by: []
 - LLM wiring for DayNest
 - archive moves
 - ADR files
-
-Clarification:
-
-- shared-architecture body refresh is deferred
-- archive moves and ADR files remain prohibited in Docs-4B-3C
-- they are planned for later phases
-
-## Next Planned Steps
-
-1. review Docs-4B-3C governance-entry metadata
-2. Docs-4B-4: refresh INDEX and CURRENT after metadata completion
-3. shared-architecture body-refresh planning batch
-4. Docs-5: create archive/ and adr/ structure
-5. create ADR-001
-6. only after ADR-001 review, add minimal canonical task schema types
+- broader DayNest runtime implementation before ADR-001 is accepted
 
 ## Boundary Reminder
 
