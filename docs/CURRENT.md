@@ -1,7 +1,7 @@
 ---
 status: active-source-of-truth
 scope: current-project-state
-last-reviewed-checkpoint: docs-5
+last-reviewed-checkpoint: adr-001a
 supersedes: []
 superseded-by: []
 ---
@@ -22,7 +22,8 @@ superseded-by: []
 - Docs-4B-3B shared-architecture metadata is complete
 - Docs-4B-3C governance-entry metadata is complete
 - Docs-4B-4 INDEX and CURRENT finalization is complete
-- Docs-5 archive and ADR structure is the active docs-only batch
+- Docs-5 archive and ADR structure is complete
+- ADR-001A proposed draft is the active docs-only batch
 
 ## Validated Runtime Checkpoint
 
@@ -44,15 +45,15 @@ superseded-by: []
 
 ## Current Task
 
-- establish `docs/archive/README.md` and `docs/adr/README.md`
+- draft `ADR-001-task-storage-and-subtask-promotion.md`
 - keep this batch docs-only
-- do not move historical documents in this batch
+- do not expand runtime yet
 
 ## Next Planned Steps
 
-1. finish Docs-5
-2. ADR-001: top-level task storage and subtask promotion model
-3. only after ADR-001 is accepted, start broader DayNest runtime implementation
+1. review ADR-001
+2. accept or revise ADR-001
+3. Task Schema 1A begins only after ADR-001 is accepted
 
 ## Do Not Implement Yet
 
@@ -65,8 +66,7 @@ superseded-by: []
 - dashboard
 - Agent wiring
 - LLM wiring for DayNest
-- moving historical docs in this batch
-- ADR-001 itself in this batch
+- runtime expansion before ADR-001 is accepted
 - broader DayNest runtime implementation before ADR-001 is accepted
 
 ## Boundary Reminder

@@ -1,7 +1,7 @@
 ---
 status: active-supporting
 scope: daynest-documentation-entry
-last-reviewed-checkpoint: docs-4b-3c
+last-reviewed-checkpoint: adr-001a
 supersedes: []
 superseded-by: []
 ---
@@ -86,6 +86,15 @@ Clarification:
 Clarification:
 
 - the decision matrix narrows MVP storage and projection choices before ADRs
+
+## Architecture Decisions
+
+### [../adr/ADR-001-task-storage-and-subtask-promotion.md](../adr/ADR-001-task-storage-and-subtask-promotion.md)
+
+Clarification:
+
+- `ADR-001` is proposed, not yet accepted
+- runtime implementation must not broaden until it is reviewed and accepted
 
 ## Historical Checkpoints
 

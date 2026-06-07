@@ -1,7 +1,7 @@
 ---
 status: active-source-of-truth
 scope: documentation-navigation-index
-last-reviewed-checkpoint: docs-5
+last-reviewed-checkpoint: adr-001a
 supersedes: []
 superseded-by: []
 ---
@@ -224,6 +224,12 @@ Role:
 
 - ADR process, status, and naming entry point
 
+### [adr/ADR-001-task-storage-and-subtask-promotion.md](./adr/ADR-001-task-storage-and-subtask-promotion.md)
+
+Role:
+
+- proposed DayNest task storage and subtask promotion ADR
+
 ## 10. Conflict-Resolution Rules
 
 - newer source-of-truth docs override older milestone-era assumptions
@@ -250,8 +256,9 @@ Role:
 
 - Workflow-0 Codex review-bundle tooling is complete
 - Docs-4B governance-entry metadata rollout is complete
-- Docs-5 establishes the archive and ADR documentation structure
+- Docs-5 archive and ADR structure is complete
 - no files were archived in this batch
+- ADR-001 proposed draft is active
 - runtime remains intentionally narrow:
   - manual dev-only `append_daily_log` path only
   - no Daily Agent runtime yet
@@ -264,11 +271,11 @@ Role:
 
 Current documentation phase:
 
-- `Docs-5`: establish `docs/archive/` and `docs/adr/`
+- `ADR-001A`: proposed draft and review
 
-Next architecture decision after Docs-5:
+Next architecture step after review:
 
-- `ADR-001`: top-level task storage and subtask promotion model
+- accept or revise `ADR-001`: top-level task storage and subtask promotion model
 
 ## 14. Future Governance
 
