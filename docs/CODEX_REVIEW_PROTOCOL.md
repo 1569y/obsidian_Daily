@@ -72,8 +72,12 @@ Before a new batch:
 8. commit only after review
 9. confirm the worktree is clean again after commit
 
-Batch names must be unique and must not contain path-traversal segments.
+`-Batch` is a stable workflow-step label and must not contain path-traversal segments.
 The exporter resolves the Git repository root automatically before running Git checks or the build command.
+The exporter makes each bundle directory unique by combining a local timestamp, the batch label, and the review mode.
+If a fully resolved bundle directory unexpectedly already exists, the exporter refuses to overwrite it.
+Generated folder format: `yyyyMMdd-HHmmss-fff__<batch>__<mode>`.
+Example: `20260607-214530-482__docs-4b-4__pre-commit`.
 
 ## Commit Message Rule
 
@@ -118,3 +122,5 @@ Post-commit export:
 Review bundles are generated outside the repository under `$env:TEMP`.
 Do not commit generated review bundles.
 Do not store patches in the repository unless explicitly requested.
+Upload `review-summary.txt` and `changes.patch` from the newest timestamped bundle for pre-commit review.
+Post-commit bundles may also contain per-commit patches and `combined.patch`.

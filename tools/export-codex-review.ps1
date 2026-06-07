@@ -288,9 +288,11 @@ try {
         throw 'post-commit mode requires at least one value in -Commits.'
     }
 
+    $bundleTimestamp = Get-Date -Format 'yyyyMMdd-HHmmss-fff'
+    $bundleId = '{0}__{1}__{2}' -f $bundleTimestamp, $Batch, $Mode
     $reviewRoot = [System.IO.Path]::GetFullPath((Join-Path $env:TEMP 'moodnest-review'))
     $reviewRootWithSeparator = $reviewRoot.TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
-    $bundleDir = [System.IO.Path]::GetFullPath((Join-Path $reviewRoot $Batch))
+    $bundleDir = [System.IO.Path]::GetFullPath((Join-Path $reviewRoot $bundleId))
 
     if (-not $bundleDir.StartsWith($reviewRootWithSeparator, [System.StringComparison]::OrdinalIgnoreCase)) {
         throw "Resolved bundle directory escapes the review root.`nReview root: $reviewRootWithSeparator`nResolved bundle: $bundleDir"
@@ -329,6 +331,9 @@ try {
 
     Add-Section -Parts $summaryParts -Title 'Batch' -Body $Batch
     Add-Section -Parts $summaryParts -Title 'Mode' -Body $Mode
+    Add-Section -Parts $summaryParts -Title 'Bundle Timestamp' -Body $bundleTimestamp
+    Add-Section -Parts $summaryParts -Title 'Bundle ID' -Body $bundleId
+    Add-Section -Parts $summaryParts -Title 'Bundle Directory' -Body $bundleDir
     Add-Section -Parts $summaryParts -Title 'Timestamp' -Body $timestamp
     Add-Section -Parts $summaryParts -Title 'Invocation Directory' -Body $invocationDirectory
     Add-Section -Parts $summaryParts -Title 'Repository Root' -Body $repositoryRoot
@@ -638,7 +643,6 @@ try {
     Add-Section -Parts $summaryParts -Title 'Requires Higher-Risk Review' -Body ([string]$requiresHigherRiskReview)
     Add-Section -Parts $summaryParts -Title 'Build Command' -Body $BuildCommand
     Add-Section -Parts $summaryParts -Title 'Build Exit Code' -Body ([string]$buildResult.ExitCode)
-    Add-Section -Parts $summaryParts -Title 'Generated Bundle Directory' -Body $bundleDir
     $reviewGateText = if ($reviewPassed) { 'PASS' } else { 'FAIL' }
     Add-Section -Parts $summaryParts -Title 'Review Gate Result' -Body $reviewGateText
 
@@ -646,6 +650,7 @@ try {
     $generatedFiles.Add('review-summary.txt') | Out-Null
 
     Write-Host "Bundle directory: $bundleDir"
+    Write-Host "Bundle ID: $bundleId"
     Write-Host 'Generated files:'
     foreach ($file in ($generatedFiles | Sort-Object)) {
         Write-Host "- $file"
