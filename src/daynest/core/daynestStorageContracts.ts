@@ -1,9 +1,12 @@
 import type {
   MoonDailyLog,
   MoonExpense,
-  MoonTask,
   MoonTimer,
 } from "./daynestTypes";
+import type {
+  DayNestTaskId,
+  DayNestTaskRecord,
+} from "./daynestTaskTypes";
 import type { DayNestDailyNoteTarget } from "./daynestDailyNoteSettings";
 
 export type DayNestDailyNoteAppendStatus =
@@ -27,9 +30,9 @@ export interface DayNestDailyNoteRepositoryContract {
 }
 
 export interface DayNestTaskRepository {
-  getById(id: string): Promise<MoonTask | null>;
-  listAll(): Promise<MoonTask[]>;
-  save(task: MoonTask): Promise<string>;
+  getById(id: DayNestTaskId): Promise<DayNestTaskRecord | null>;
+  listAll(): Promise<DayNestTaskRecord[]>;
+  save(task: DayNestTaskRecord): Promise<string>;
 }
 
 export interface DayNestExpenseRepository {
