@@ -45,11 +45,7 @@ function buildCaptureTaskPreview(
 ): DayNestActionPreview {
   const details = [
     formatOptionalLine("Due", action.taskDraft.dueDate),
-    formatOptionalLine("Priority", action.taskDraft.priority),
-    formatOptionalLine("Project", action.taskDraft.project),
-    action.taskDraft.tags && action.taskDraft.tags.length > 0
-      ? `Tags: ${action.taskDraft.tags.join(", ")}`
-      : null,
+    formatOptionalLine("Scheduled", action.taskDraft.scheduledDate),
   ].filter((value): value is string => typeof value === "string");
 
   return {

@@ -1,5 +1,6 @@
 import type { DayNestDailyNoteSettings } from "./daynestDailyNoteSettings";
-import type { MoonDailyLog, MoonExpense, MoonTask, MoonTimer } from "./daynestTypes";
+import type { DayNestTaskDraft } from "./daynestTaskTypes";
+import type { MoonDailyLog, MoonExpense, MoonTimer } from "./daynestTypes";
 
 export type DayNestActionKind =
   | "append_daily_log"
@@ -42,7 +43,7 @@ export interface DayNestAppendDailyLogAction extends DayNestActionBase {
 
 export interface DayNestCaptureTaskAction extends DayNestActionBase {
   kind: "capture_task";
-  taskDraft: MoonTask;
+  taskDraft: DayNestTaskDraft;
 }
 
 export interface DayNestCaptureExpenseAction extends DayNestActionBase {
