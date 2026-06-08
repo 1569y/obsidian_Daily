@@ -55,3 +55,25 @@ export interface DayNestTaskRecord {
    */
   updatedAt: string;
 }
+
+/**
+ * Minimal task-capture input before persistence assigns canonical metadata.
+ *
+ * Drafts describe what the user or Agent wants to create. They intentionally
+ * omit identity, lifecycle status, sibling order, and timestamps. Those fields
+ * are assigned later when a draft becomes a canonical DayNestTaskRecord.
+ */
+export interface DayNestTaskDraft {
+  title: string;
+  parentTaskId?: DayNestTaskId;
+
+  /**
+   * Local calendar deadline in YYYY-MM-DD form.
+   */
+  dueDate?: string;
+
+  /**
+   * Intended actionable local calendar date in YYYY-MM-DD form.
+   */
+  scheduledDate?: string;
+}
