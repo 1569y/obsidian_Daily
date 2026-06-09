@@ -234,7 +234,7 @@ Role:
 
 Role:
 
-- proposed DayNest task canonical persistence format ADR
+- accepted DayNest task canonical persistence format ADR
 
 ## 10. Conflict-Resolution Rules
 
@@ -265,7 +265,8 @@ Role:
 - Docs-5 archive and ADR structure is complete
 - no files were archived in this batch
 - ADR-001 is accepted
-- ADR-002A proposed draft is active
+- ADR-002 is accepted
+- ADR-002B acceptance finalisation is the active docs-only checkpoint
 - runtime remains intentionally narrow:
   - manual dev-only `append_daily_log` path only
   - no Daily Agent runtime yet
@@ -281,17 +282,17 @@ Role:
 - no task repository implementation yet
 - no task executor yet
 - no task-writing runtime path yet
-- runtime implementation remains paused pending ADR-002 acceptance
+- repository implementation remains paused
 
 ## 13. Next Recommended Artifact
 
 Current documentation phase:
 
-- `ADR-002A`: proposed task canonical persistence format draft
+- `ADR-002B`: accepted ADR finalisation
 
 Next architecture step after review:
 
-- `ADR-002`: acceptance or revision
+- `Storage Path 2C`: preflight
 
 ## 14. Future Governance
 

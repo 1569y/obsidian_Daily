@@ -1,7 +1,7 @@
 ---
-status: proposed
+status: accepted
 scope: daynest-task-canonical-persistence-format-decision
-last-reviewed-checkpoint: adr-002a
+last-reviewed-checkpoint: adr-002b
 supersedes: []
 superseded-by: []
 ---
@@ -10,7 +10,7 @@ superseded-by: []
 
 ## Status
 
-proposed
+accepted
 
 ## Context
 
@@ -192,8 +192,13 @@ State:
 - task ids must remain unique
 - records retain flat `parentTaskId` relationships
 - `sortOrder` remains canonical sibling-order metadata
+- JSON array order is a deterministic serialization concern, not the canonical sibling-order source
+- task-tree sibling ordering remains represented by `sortOrder`
+- deterministic serialization should use a stable ordering strategy
 - deterministic serialization order is required
 - the exact sorting implementation belongs to a later pure codec/helper batch
+- a later pure codec/helper batch will choose the exact sort comparator
+- array position must not silently replace `sortOrder` semantics
 
 ### 3. Markdown is projection
 
@@ -215,6 +220,9 @@ State:
 - daily-note task entries are derived append-only projections
 - daily notes do not become canonical mutable task storage
 - current `append_daily_log` runtime behavior remains separate
+- appended Daily Note task entries are historical snapshots
+- later canonical task changes must not silently rewrite prior Daily Notes
+- future reconciliation or backlink behavior remains a separate decision
 
 ### 5. Future ledger remains separate
 
@@ -238,10 +246,25 @@ State:
 - `tasks.json` remains local and inspectable
 - direct manual editing is not the primary supported UX
 - invalid JSON must never be silently overwritten
+- invalid JSON must never be silently replaced with an empty document
+- unsupported `schemaVersion` must fail closed
+- duplicate task ids must fail closed
+- invalid parent references and cyclic parent relationships must not be silently persisted
+- repository operations must preserve the original canonical file when validation or parsing fails
 - parse failure, backup, and safe-write behavior belong to repository implementation design
+- exact error UX and recovery workflow remain deferred
 - manual Markdown-edit reconciliation remains ADR-003 territory
 
-### 8. Migration path
+### 8. Minimum safe-write principle
+
+State:
+
+- canonical saves must not destructively overwrite the only known-good copy before replacement content is prepared
+- repository implementation must use a safe-write strategy such as temporary-write-and-replace, backup-before-replace, or another explicitly reviewed equivalent
+- exact filesystem technique belongs to the later repository implementation design
+- no implementation is added in this docs-only batch
+
+### 9. Migration path
 
 State:
 
@@ -253,7 +276,7 @@ State:
   - mobile performance degrades
 - the initial `schemaVersion` field supports later migration
 
-### 9. Repository contract boundary
+### 10. Repository contract boundary
 
 State:
 
@@ -261,6 +284,10 @@ State:
 - `save(...)` semantics remain intentionally provisional
 - create/update separation, richer result objects, and overwrite rules should be reviewed in a later narrow code-design batch
 - ADR-002 does not modify TypeScript contracts
+- ADR-002 acceptance authorizes storage-path and codec design work only
+- do not implement the repository immediately after ADR-002 acceptance
+- run a repository-semantics preflight first
+- review `save(...)`, `create(...)`, `update(...)`, duplicate-id handling, overwrite policy, and future result-object design before repository implementation
 
 ## Consequences
 
@@ -274,6 +301,9 @@ Positive consequences:
 - easy schema migration entry point
 - future ledger remains independent
 - cache and analytics layers remain rebuildable
+- deterministic serialization remains separate from `sortOrder` semantics
+- fail-closed behavior and safe-write strategy are required
+- Daily Note snapshots are intentionally not silently rewritten
 
 Trade-offs:
 
@@ -283,16 +313,19 @@ Trade-offs:
 - direct human editing is possible but not the primary workflow
 - deterministic serialization and safe-write behavior are required
 - scale thresholds for migration remain unresolved
+- fail-closed validation can block writes until data issues are resolved
 
 ## Deferred Questions
 
 - exact vault-relative `tasks.json` path
-- parse-failure handling
+- exact stable serialization comparator
+- parse-failure UX
 - backup strategy
-- safe-write technique
+- safe-write filesystem technique
 - deterministic record ordering algorithm
-- create/update/save contract semantics
-- overwrite and duplicate-id rules
+- repository create/update/save semantics
+- duplicate-id and overwrite behavior
+- result-object design
 - JSON codec helper design
 - per-record JSON migration threshold
 - ledger schema and physical format
@@ -301,6 +334,7 @@ Trade-offs:
 - analytics read-model storage
 - managed-block syntax
 - manual Markdown-edit reconciliation
+- Daily Note backlink or reconciliation behavior
 - tree projection format
 - conflict resolution across devices
 

@@ -24,8 +24,12 @@ superseded-by: []
 - Docs-4B-4 INDEX and CURRENT finalization is complete
 - Docs-5 archive and ADR structure is complete
 - ADR-001 is accepted
+- ADR-002 is accepted
 - task types, draft boundary, adapter, repository contract bridge, and flat checkbox projection helper are complete
-- ADR-002A proposed task canonical persistence format draft is the active docs-only batch
+- ADR-002B accepted ADR finalisation is the active docs-only batch
+- aggregate `tasks.json` is the selected canonical mutable task-state format
+- Markdown remains projection
+- future ledger remains separate
 
 ## Validated Runtime Checkpoint
 
@@ -50,16 +54,17 @@ superseded-by: []
 
 ## Current Task
 
-- draft `ADR-002-daynest-task-canonical-persistence-format.md` as proposed
+- finalise and accept `ADR-002-daynest-task-canonical-persistence-format.md`
 - keep this batch docs-only
 - do not expand runtime yet
 
 ## Next Planned Steps
 
 1. ADR-001 is accepted
-2. review ADR-002 proposed draft
-3. accept or revise ADR-002 before task storage implementation
-4. no storage, executor, Agent, UI, or dashboard changes yet
+2. ADR-002 is accepted
+3. `Storage Path 2C` preflight is next
+4. repository-semantics review remains required before repository implementation
+5. no storage, executor, Agent, UI, or dashboard changes yet
 
 ## Do Not Implement Yet
 

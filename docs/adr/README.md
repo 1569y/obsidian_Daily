@@ -53,6 +53,11 @@ It is not a general product-design document and not a running brainstorm.
 - `ADR-001`: top-level task storage and subtask promotion model
   - accepted
 - `ADR-002`: DayNest task canonical persistence format
-  - proposed in `ADR-002A`
+  - accepted
 
-Do not implement runtime work that depends on `ADR-002` until it is accepted.
+Next architecture work:
+
+- storage-path and codec design
+- repository-semantics review before any repository implementation
+
+Repository implementation remains blocked pending repository-semantics review.

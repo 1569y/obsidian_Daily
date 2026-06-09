@@ -99,8 +99,10 @@ Clarification:
 
 Clarification:
 
-- `ADR-002` is proposed
-- task storage implementation remains paused until `ADR-002` is accepted
+- `ADR-002` is accepted
+- chosen direction: aggregate `tasks.json` canonical state, derived Markdown projection, and a future separate ledger
+- `Storage Path 2C` preflight is next
+- repository implementation remains paused
 
 ## Historical Checkpoints
 
