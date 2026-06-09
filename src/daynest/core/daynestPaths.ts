@@ -1,5 +1,6 @@
 export const DAYNEST_ROOT_PATH = "NestHub/DayNest";
 export const DAYNEST_TASKS_PATH = "NestHub/DayNest/tasks";
+export const DAYNEST_TASKS_JSON_PATH = "NestHub/DayNest/tasks.json";
 export const DAYNEST_EXPENSES_PATH = "NestHub/DayNest/expenses";
 export const DAYNEST_TIMERS_PATH = "NestHub/DayNest/timers";
 export const DAYNEST_DAILY_PATH = "NestHub/DayNest/daily";
@@ -17,8 +18,8 @@ export function getDayNestRootPath(): string {
   return DAYNEST_ROOT_PATH;
 }
 
-export function getDayNestTasksPath(): string {
-  return DAYNEST_TASKS_PATH;
+export function getDayNestTasksJsonPath(): string {
+  return DAYNEST_TASKS_JSON_PATH;
 }
 
 export function getDayNestExpensesPath(): string {
