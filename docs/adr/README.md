@@ -17,7 +17,7 @@ It is not a general product-design document and not a running brainstorm.
 ## Recommended Filename Pattern
 
 - `ADR-001-task-storage-and-subtask-promotion.md`
-- `ADR-002-ledger-format.md`
+- `ADR-002-daynest-task-canonical-persistence-format.md`
 - `ADR-003-markdown-projection-managed-blocks.md`
 
 ## Recommended ADR Sections
@@ -51,5 +51,8 @@ It is not a general product-design document and not a running brainstorm.
 ## Next Planned ADR
 
 - `ADR-001`: top-level task storage and subtask promotion model
+  - accepted
+- `ADR-002`: DayNest task canonical persistence format
+  - proposed in `ADR-002A`
 
-Do not create `ADR-001` itself until this Docs-5 structure batch is complete.
+Do not implement runtime work that depends on `ADR-002` until it is accepted.

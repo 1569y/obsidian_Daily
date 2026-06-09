@@ -23,7 +23,9 @@ superseded-by: []
 - Docs-4B-3C governance-entry metadata is complete
 - Docs-4B-4 INDEX and CURRENT finalization is complete
 - Docs-5 archive and ADR structure is complete
-- ADR-001B accepted ADR finalisation is the current docs-only batch
+- ADR-001 is accepted
+- task types, draft boundary, adapter, repository contract bridge, and flat checkbox projection helper are complete
+- ADR-002A proposed task canonical persistence format draft is the active docs-only batch
 
 ## Validated Runtime Checkpoint
 
@@ -42,18 +44,21 @@ superseded-by: []
 - no DayNest settings UI yet
 - no DayNest dashboard yet
 - no task / expense / timer execution yet
+- no task repository implementation yet
+- no task executor yet
+- no task-writing runtime path yet
 
 ## Current Task
 
-- finalize and accept `ADR-001-task-storage-and-subtask-promotion.md`
+- draft `ADR-002-daynest-task-canonical-persistence-format.md` as proposed
 - keep this batch docs-only
 - do not expand runtime yet
 
 ## Next Planned Steps
 
 1. ADR-001 is accepted
-2. Task Schema 1A is next
-3. Task Schema 1A is pure types only
+2. review ADR-002 proposed draft
+3. accept or revise ADR-002 before task storage implementation
 4. no storage, executor, Agent, UI, or dashboard changes yet
 
 ## Do Not Implement Yet

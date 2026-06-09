@@ -230,6 +230,12 @@ Role:
 
 - accepted DayNest task storage and subtask promotion ADR
 
+### [adr/ADR-002-daynest-task-canonical-persistence-format.md](./adr/ADR-002-daynest-task-canonical-persistence-format.md)
+
+Role:
+
+- proposed DayNest task canonical persistence format ADR
+
 ## 10. Conflict-Resolution Rules
 
 - newer source-of-truth docs override older milestone-era assumptions
@@ -259,24 +265,33 @@ Role:
 - Docs-5 archive and ADR structure is complete
 - no files were archived in this batch
 - ADR-001 is accepted
+- ADR-002A proposed draft is active
 - runtime remains intentionally narrow:
   - manual dev-only `append_daily_log` path only
   - no Daily Agent runtime yet
   - no DayNest settings UI yet
   - no DayNest dashboard yet
   - no task / expense / timer execution yet
-- runtime implementation may begin only through the narrow pure-type Task Schema 1A batch
-- do not broaden runtime beyond Task Schema 1A yet
+- task-domain isolated foundations now exist:
+  - task types
+  - draft boundary
+  - draft-to-record adapter
+  - repository contract bridge
+  - flat checkbox projection helper
+- no task repository implementation yet
+- no task executor yet
+- no task-writing runtime path yet
+- runtime implementation remains paused pending ADR-002 acceptance
 
 ## 13. Next Recommended Artifact
 
 Current documentation phase:
 
-- `ADR-001B`: accepted ADR finalisation
+- `ADR-002A`: proposed task canonical persistence format draft
 
 Next architecture step after review:
 
-- `Task Schema 1A`: pure task types only
+- `ADR-002`: acceptance or revision
 
 ## 14. Future Governance
 

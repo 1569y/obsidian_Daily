@@ -94,7 +94,13 @@ Clarification:
 Clarification:
 
 - `ADR-001` is accepted
-- `Task Schema 1A` is the next narrow implementation batch
+
+### [../adr/ADR-002-daynest-task-canonical-persistence-format.md](../adr/ADR-002-daynest-task-canonical-persistence-format.md)
+
+Clarification:
+
+- `ADR-002` is proposed
+- task storage implementation remains paused until `ADR-002` is accepted
 
 ## Historical Checkpoints
 
@@ -116,8 +122,8 @@ Clarification:
 
 ## Current Pending Decisions
 
-- ADR-001: top-level task storage and subtask promotion model
-- ledger format prototype before ADR-002
+- ADR-002: DayNest task canonical persistence format
+- ledger format details after ADR-002
 - projection marker design before managed blocks
 - linked-note backlink behavior
 - template-file UX later
