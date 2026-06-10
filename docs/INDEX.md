@@ -1,7 +1,7 @@
 ---
 status: active-source-of-truth
 scope: documentation-navigation-index
-last-reviewed-checkpoint: adr-001b
+last-reviewed-checkpoint: task-storage-foundation
 supersedes: []
 superseded-by: []
 ---
@@ -261,38 +261,42 @@ Role:
 ## 12. Workflow And Runtime Checkpoint
 
 - Workflow-0 Codex review-bundle tooling is complete
+- Workflow-0 remains frozen
 - Docs-4B governance-entry metadata rollout is complete
 - Docs-5 archive and ADR structure is complete
 - no files were archived in this batch
 - ADR-001 is accepted
 - ADR-002 is accepted
-- ADR-002B acceptance finalisation is the active docs-only checkpoint
+- DayNest task-storage foundation is complete:
+  - task-domain foundations
+  - canonical path helpers
+  - JSON codec
+  - task-domain validation
+  - repository contract
+  - repository read path
+  - best-effort safe-write path
+  - per-instance repository write serialization
+  - read-only recovery inspection
 - runtime remains intentionally narrow:
   - manual dev-only `append_daily_log` path only
   - no Daily Agent runtime yet
   - no DayNest settings UI yet
   - no DayNest dashboard yet
   - no task / expense / timer execution yet
-- task-domain isolated foundations now exist:
-  - task types
-  - draft boundary
-  - draft-to-record adapter
-  - repository contract bridge
-  - flat checkbox projection helper
-- no task repository implementation yet
-- no task executor yet
+- no Task Service runtime yet
+- capture_task remains rejected
+- no runtime code constructs `DayNestTaskJsonRepository` yet
 - no task-writing runtime path yet
-- repository implementation remains paused
 
 ## 13. Next Recommended Artifact
 
 Current documentation phase:
 
-- `ADR-002B`: accepted ADR finalisation
+- `Task Service`: preflight
 
 Next architecture step after review:
 
-- `Storage Path 2C`: preflight
+- Task Service design and implementation preflight
 
 ## 14. Future Governance
 

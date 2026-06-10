@@ -1,7 +1,7 @@
 ---
 status: active-supporting
 scope: daynest-documentation-entry
-last-reviewed-checkpoint: adr-001b
+last-reviewed-checkpoint: task-storage-foundation
 supersedes: []
 superseded-by: []
 ---
@@ -101,8 +101,8 @@ Clarification:
 
 - `ADR-002` is accepted
 - chosen direction: aggregate `tasks.json` canonical state, derived Markdown projection, and a future separate ledger
-- `Storage Path 2C` preflight is next
-- repository implementation remains paused
+- task-storage foundation is now complete through repository and recovery inspection
+- Task Service preflight is next
 
 ## Historical Checkpoints
 
@@ -121,11 +121,20 @@ Clarification:
 - no DayNest Agent runtime yet
 - no DayNest settings UI yet
 - no DayNest dashboard yet
+- accepted task-storage direction remains:
+  - aggregate `tasks.json` canonical state
+  - derived Markdown projection
+  - future separate ledger
+- repository read path, best-effort write path, per-instance `replaceAll(...)` serialization, and read-only recovery inspection are implemented but not runtime-wired
+- stale `.tmp` and `.bak` artifacts block writes
+- stale artifacts are not auto-cleaned and are not auto-restored
+- capture_task remains rejected until later executor wiring
+- Task Service is the next phase
 
 ## Current Pending Decisions
 
-- ADR-002: DayNest task canonical persistence format
-- ledger format details after ADR-002
+- Task Service design and wiring
+- ledger format details after repository foundation
 - projection marker design before managed blocks
 - linked-note backlink behavior
 - template-file UX later

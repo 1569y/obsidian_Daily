@@ -1,7 +1,7 @@
 ---
 status: active-source-of-truth
 scope: current-project-state
-last-reviewed-checkpoint: adr-001b
+last-reviewed-checkpoint: task-storage-foundation
 supersedes: []
 superseded-by: []
 ---
@@ -10,31 +10,31 @@ superseded-by: []
 
 ## Current Phase
 
-- Documentation Governance Consolidation
-- Workflow-0 review-bundle tooling is complete and frozen
-- Docs-1 migration plan is complete
-- Docs-2 entry-point creation is complete
-- Docs-3 file migration and relative-link repair are complete
-- Docs-4A global navigation refresh is complete
-- Docs-4B-1 DayNest metadata is complete
-- Docs-4B-2 MoodNest metadata is complete
-- Docs-4B-3A shared-architecture classification review is complete
-- Docs-4B-3B shared-architecture metadata is complete
-- Docs-4B-3C governance-entry metadata is complete
-- Docs-4B-4 INDEX and CURRENT finalization is complete
-- Docs-5 archive and ADR structure is complete
-- ADR-001 is accepted
-- ADR-002 is accepted
-- task types, draft boundary, adapter, repository contract bridge, and flat checkbox projection helper are complete
-- ADR-002B accepted ADR finalisation is the active docs-only batch
-- aggregate `tasks.json` is the selected canonical mutable task-state format
+- Workflow-0 review-bundle tooling remains complete and frozen
+- ADR-001 and ADR-002 remain accepted
+- DayNest task-storage foundation is complete:
+  - task schema and draft boundary
+  - draft-to-record adapter
+  - Markdown checkbox projection helper
+  - canonical path helpers
+  - JSON codec
+  - task-domain validation
+  - repository contract
+  - Vault-backed repository read path
+  - best-effort safe-write path
+  - per-instance `replaceAll(...)` write serialization
+  - read-only recovery inspection
+- canonical mutable task state remains `NestHub/DayNest/tasks.json`
+- recovery artifacts remain:
+  - `NestHub/DayNest/tasks.json.tmp`
+  - `NestHub/DayNest/tasks.json.bak`
 - Markdown remains projection
 - future ledger remains separate
 
 ## Validated Runtime Checkpoint
 
 - MoodNest runtime behavior remains unchanged
-- DayNest currently has only one intentionally narrow runtime entry:
+- DayNest still has only one intentionally narrow runtime entry:
   - manual dev-only `append_daily_log` command
 - validated chain:
   - manual command
@@ -44,44 +44,18 @@ superseded-by: []
   - daily-note target resolver
   - daily-note repository
   - append-only Markdown write
-- no Daily Agent runtime yet
-- no DayNest settings UI yet
-- no DayNest dashboard yet
-- no task / expense / timer execution yet
-- no task repository implementation yet
-- no task executor yet
-- no task-writing runtime path yet
+- repository writes are best-effort safe-write, not guaranteed atomic replacement
+- `replaceAll(...)` is serialized per `DayNestTaskJsonRepository` instance only
+- no automatic stale-artifact cleanup exists
+- no automatic restore exists
+- no Task Service exists yet
+- capture_task remains rejected
+- no runtime code constructs `DayNestTaskJsonRepository` yet
+- no task-writing runtime path exists yet
 
-## Current Task
+## Next Planned Step
 
-- finalise and accept `ADR-002-daynest-task-canonical-persistence-format.md`
-- keep this batch docs-only
-- do not expand runtime yet
-
-## Next Planned Steps
-
-1. ADR-001 is accepted
-2. ADR-002 is accepted
-3. `Storage Path 2C` preflight is next
-4. repository-semantics review remains required before repository implementation
-5. no storage, executor, Agent, UI, or dashboard changes yet
-
-## Do Not Implement Yet
-
-- canonical schema types
-- renderer implementation
-- JSONL ledger implementation
-- storage adapters beyond the validated `append_daily_log` path
-- settings persistence
-- settings UI
-- dashboard
-- Agent wiring
-- LLM wiring for DayNest
-- storage changes
-- executor changes
-- Agent changes
-- UI changes
-- dashboard changes
+- Task Service preflight
 
 ## Boundary Reminder
 
