@@ -37,7 +37,8 @@ export type DayNestTaskRepositoryErrorCode =
   | "write_failed"
   | "path_conflict"
   | "stale_temp_artifact"
-  | "stale_backup_artifact";
+  | "stale_backup_artifact"
+  | "canonical_write_committed_cleanup_failed";
 
 export interface DayNestTaskRepositoryError {
   code: DayNestTaskRepositoryErrorCode;
