@@ -3,6 +3,7 @@ import type {
   MoonExpense,
   MoonTimer,
 } from "./daynestTypes";
+import type { DayNestTaskValidationIssue } from "./daynestTaskDomainValidation";
 import type {
   DayNestTaskId,
   DayNestTaskRecord,
@@ -29,10 +30,53 @@ export interface DayNestDailyNoteRepositoryContract {
   ): Promise<DayNestDailyNoteAppendResult>;
 }
 
+export type DayNestTaskRepositoryErrorCode =
+  | "invalid_canonical_document"
+  | "task_domain_validation_failed"
+  | "read_failed"
+  | "write_failed"
+  | "path_conflict"
+  | "stale_temp_artifact"
+  | "stale_backup_artifact";
+
+export interface DayNestTaskRepositoryError {
+  code: DayNestTaskRepositoryErrorCode;
+  message: string;
+  path?: string;
+  parseError?: string;
+  validationIssues?: readonly DayNestTaskValidationIssue[];
+}
+
+export type DayNestTaskRepositoryResult<T> =
+  | {
+      ok: true;
+      value: T;
+    }
+  | {
+      ok: false;
+      error: DayNestTaskRepositoryError;
+    };
+
+/**
+ * Repository boundary for aggregate canonical DayNest task state.
+ *
+ * A missing canonical tasks.json file represents an empty first-run state:
+ * listAll() should eventually resolve successfully with [] and getById(...)
+ * should eventually resolve successfully with null.
+ *
+ * Filesystem behavior, safe-write replacement, stale-artifact handling, and
+ * recovery UX remain deferred to the repository implementation design.
+ */
 export interface DayNestTaskRepository {
-  getById(id: DayNestTaskId): Promise<DayNestTaskRecord | null>;
-  listAll(): Promise<DayNestTaskRecord[]>;
-  save(task: DayNestTaskRecord): Promise<string>;
+  getById(
+    id: DayNestTaskId
+  ): Promise<DayNestTaskRepositoryResult<DayNestTaskRecord | null>>;
+
+  listAll(): Promise<DayNestTaskRepositoryResult<DayNestTaskRecord[]>>;
+
+  replaceAll(
+    tasks: readonly DayNestTaskRecord[]
+  ): Promise<DayNestTaskRepositoryResult<void>>;
 }
 
 export interface DayNestExpenseRepository {
