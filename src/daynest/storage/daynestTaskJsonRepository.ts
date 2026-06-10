@@ -55,6 +55,14 @@ function formatUnknownError(error: unknown): string {
 export class DayNestTaskJsonRepository
   implements DayNestTaskRepository
 {
+  /**
+   * Serializes replaceAll(...) calls within this repository instance so local
+   * writes cannot interleave the shared temp, backup, and canonical paths.
+   *
+   * This is not a cross-instance, cross-process, or cross-device lock.
+   */
+  private writeQueue: Promise<void> = Promise.resolve();
+
   constructor(private readonly vault: Vault) {}
 
   async listAll(): Promise<
@@ -80,6 +88,23 @@ export class DayNestTaskJsonRepository
   }
 
   async replaceAll(
+    tasks: readonly DayNestTaskRecord[]
+  ): Promise<DayNestTaskRepositoryResult<void>> {
+    const taskSnapshot = tasks.map((task) => ({ ...task }));
+
+    const operation = this.writeQueue.then(() =>
+      this.replaceAllUnlocked(taskSnapshot)
+    );
+
+    this.writeQueue = operation.then(
+      () => undefined,
+      () => undefined
+    );
+
+    return operation;
+  }
+
+  private async replaceAllUnlocked(
     tasks: readonly DayNestTaskRecord[]
   ): Promise<DayNestTaskRepositoryResult<void>> {
     const canonicalPath = normalizePath(getDayNestTasksJsonPath());
